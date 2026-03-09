@@ -5,26 +5,62 @@
   --font-dm-sans: "DM Sans", system-ui, sans-serif;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #3a3a3a;
+/* ── DARK THEME (default) ── */
+html, html.dark {
+  --rp-bg:               #0A0A0A;
+  --rp-bg-card:          #111111;
+  --rp-bg-elevated:      #1A1A1A;
+  --rp-bg-overlay:       rgba(10,10,10,0.85);
+  --rp-surface:          #111111;
+  --rp-surface-elevated: #1A1A1A;
+  --rp-surface-hover:    #222222;
+  --rp-border:           #2A2A2A;
+  --rp-border-subtle:    #1E1E1E;
+  --rp-border-strong:    #3A3A3A;
+  --rp-text-primary:     #FFFFFF;
+  --rp-text-secondary:   #A0A0A0;
+  --rp-text-muted:       #666666;
+  --rp-text-disabled:    #444444;
+  --rp-scroll-thumb:     #2a2a2a;
+  --rp-scroll-hover:     #3a3a3a;
+  --rp-shimmer-a:        #1a1a1a;
+  --rp-shimmer-b:        #2a2a2a;
+  --rp-glass-bg:         rgba(255,255,255,0.05);
+  --rp-glass-border:     rgba(255,255,255,0.1);
 }
 
-/* Safe area padding for PWA */
-.safe-padding-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+/* ── LIGHT THEME ── */
+html.light {
+  --rp-bg:               #F2F1ED;
+  --rp-bg-card:          #FFFFFF;
+  --rp-bg-elevated:      #F8F7F3;
+  --rp-bg-overlay:       rgba(242,241,237,0.85);
+  --rp-surface:          #FFFFFF;
+  --rp-surface-elevated: #F2F1ED;
+  --rp-surface-hover:    #E8E7E2;
+  --rp-border:           #E0DED6;
+  --rp-border-subtle:    #ECEAE4;
+  --rp-border-strong:    #C5C3BB;
+  --rp-text-primary:     #161514;
+  --rp-text-secondary:   #6E6C66;
+  --rp-text-muted:       #9C9A94;
+  --rp-text-disabled:    #BEBCB5;
+  --rp-scroll-thumb:     #D0CEC6;
+  --rp-scroll-hover:     #B8B5AD;
+  --rp-shimmer-a:        #ECEAE4;
+  --rp-shimmer-b:        #E0DED6;
+  --rp-glass-bg:         rgba(255,255,255,0.7);
+  --rp-glass-border:     rgba(0,0,0,0.08);
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rp-scroll-thumb); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--rp-scroll-hover); }
+
+/* Safe area padding for PWA */
+.safe-padding-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
 /* Smooth scrolling */
 html {
@@ -32,74 +68,52 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Prevent text size adjustment on orientation change */
 body {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overscroll-behavior-y: none;
 }
 
 /* Glassmorphism utility */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--rp-glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--rp-glass-border);
 }
 
 /* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* Neon text glow effect */
-.text-glow {
-  text-shadow: 0 0 20px rgba(57, 255, 20, 0.4);
-}
+/* Neon text glow */
+.text-glow { text-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
 
 /* Shimmer animation */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
-
 .shimmer {
   background: linear-gradient(
     90deg,
-    #1a1a1a 25%,
-    #2a2a2a 50%,
-    #1a1a1a 75%
+    var(--rp-shimmer-a) 25%,
+    var(--rp-shimmer-b) 50%,
+    var(--rp-shimmer-a) 75%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* Card hover lift effect */
-.card-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
-}
+/* Card hover lift */
+.card-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
 
-/* Focus styles for accessibility */
-:focus-visible {
-  outline: 2px solid #39FF14;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
+/* Focus styles */
+:focus-visible { outline: 2px solid #39FF14; outline-offset: 2px; border-radius: 4px; }
 
-/* Prevent pull-to-refresh on PWA */
-body {
-  overscroll-behavior-y: none;
-}
-
-/* PR celebration animation */
+/* PR celebration */
 @keyframes confetti-fall {
-  0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+  0%   { transform: translateY(-100px) rotate(0deg); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }

@@ -359,7 +359,7 @@ export default function NewWorkoutPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[80vh] overflow-hidden"
+              className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[78vh] overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-border">
