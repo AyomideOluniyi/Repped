@@ -64,7 +64,9 @@ Return only valid JSON.`,
 
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
-    return NextResponse.json(JSON.parse(content));
+    if (!content) throw new Error("No response from AI");
+    const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+    return NextResponse.json(JSON.parse(cleaned));
   } catch (err) {
     console.error("Equipment ID error:", err);
     return NextResponse.json({ error: "Identification failed" }, { status: 500 });

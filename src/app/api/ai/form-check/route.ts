@@ -49,9 +49,11 @@ Include 2-3 positives and 2-3 issues. Cues should be actionable coaching cues sp
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("No response from AI");
 
   try {
-    const parsed = JSON.parse(content);
+    const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
     return NextResponse.json(parsed);
   } catch {
     return NextResponse.json({ error: "Failed to parse AI response" }, { status: 500 });

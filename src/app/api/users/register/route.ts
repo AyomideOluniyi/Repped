@@ -5,9 +5,9 @@ import { z } from "zod";
 
 const registerSchema = z.object({
   name: z.string().min(1).max(100),
-  email: z.string().email(),
+  email: z.string().min(1).refine((v) => v.includes("@") && v.includes("."), "Invalid email"),
   password: z.string().min(8).max(100),
-  goals: z.array(z.string()).optional(),
+  goals: z.array(z.enum(["BULKING", "CUTTING", "MAINTAINING", "STRENGTH", "ENDURANCE", "GENERAL_FITNESS"])).optional(),
 });
 
 export async function POST(request: Request) {
@@ -15,7 +15,6 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = registerSchema.parse(body);
 
-    // Check if email already exists
     const existing = await prisma.user.findUnique({
       where: { email: data.email },
     });
@@ -47,7 +46,7 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof z.ZodError) {
       return NextResponse.json(
-        { error: "Invalid input", details: err.issues },
+        { error: err.issues[0]?.message ?? "Invalid input" },
         { status: 400 }
       );
     }

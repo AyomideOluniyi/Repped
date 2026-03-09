@@ -64,7 +64,9 @@ Be specific about food items and realistic with estimates. Return only valid JSO
 
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
-    const parsed = JSON.parse(content);
+    if (!content) throw new Error("No response from AI");
+    const cleaned = content.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
 
     // Save to meal log
     await prisma.mealLog.create({

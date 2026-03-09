@@ -67,12 +67,13 @@ export default function SignupPage() {
       }
 
       // Auto sign in after registration
-      await signIn("credentials", {
+      const result = await signIn("credentials", {
         email: form.email,
         password: form.password,
         redirect: false,
       });
 
+      if (result?.error) throw new Error("Account created! Please sign in.");
       router.push("/dashboard");
     } catch (err) {
       toast({
