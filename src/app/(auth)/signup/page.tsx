@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,21 +65,7 @@ export default function SignupPage() {
         throw new Error(data.error ?? "Registration failed");
       }
 
-      // Auto sign in after registration
-      try {
-        const result = await signIn("credentials", {
-          email: form.email,
-          password: form.password,
-          redirect: false,
-        });
-        if (result?.error) {
-          router.push("/login?registered=1");
-        } else {
-          router.push("/dashboard");
-        }
-      } catch {
-        router.push("/login?registered=1");
-      }
+      router.push("/login?registered=1");
     } catch (err) {
       toast({
         title: "Registration failed",
@@ -127,7 +112,7 @@ export default function SignupPage() {
             variant="secondary"
             size="lg"
             className="w-full mb-4"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            onClick={() => { window.location.href = "/api/auth/signin/google?callbackUrl=/dashboard"; }}
             leftIcon={
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
