@@ -11,7 +11,6 @@ export default auth((req) => {
   // Public routes that don't need auth
   const publicRoutes = ["/", "/login", "/signup"];
   const isPublicRoute = publicRoutes.some((route) => pathname === route) ||
-    pathname.startsWith("/api/auth") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/icons") ||
     pathname.startsWith("/screenshots") ||
@@ -31,5 +30,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js|workbox).*)"],
+  matcher: ["/((?!api/|_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js|workbox).*)"],
 };
