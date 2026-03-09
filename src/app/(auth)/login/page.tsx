@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
@@ -12,21 +12,20 @@ import { useToast } from "@/components/ui/toast";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [justRegistered, setJustRegistered] = useState(false);
-
-  useEffect(() => {
-    if (searchParams.get("registered") === "1") {
-      setJustRegistered(true);
-    }
-  }, [searchParams]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  useEffect(() => {
+    if (window.location.search.includes("registered=1")) {
+      setJustRegistered(true);
+    }
+  }, []);
 
   const validate = () => {
     const errs: { email?: string; password?: string } = {};
