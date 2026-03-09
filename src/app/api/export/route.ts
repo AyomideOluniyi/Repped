@@ -14,7 +14,7 @@ export async function GET() {
     prisma.workout.findMany({
       where: { userId: session.user.id },
       include: { sets: { include: { exercise: { select: { name: true } } } } },
-      orderBy: { startedAt: "desc" },
+      orderBy: { date: "desc" },
     }),
     prisma.personalRecord.findMany({
       where: { userId: session.user.id },
@@ -22,11 +22,11 @@ export async function GET() {
     }),
     prisma.mealLog.findMany({
       where: { userId: session.user.id },
-      orderBy: { loggedAt: "desc" },
+      orderBy: { date: "desc" },
     }),
     prisma.bodyMeasurement.findMany({
       where: { userId: session.user.id },
-      orderBy: { measuredAt: "desc" },
+      orderBy: { date: "desc" },
     }),
   ]);
 
@@ -34,7 +34,7 @@ export async function GET() {
     exportedAt: new Date().toISOString(),
     user,
     workouts: workouts.map((w) => ({
-      date: w.startedAt,
+      date: w.date,
       duration: w.duration,
       notes: w.notes,
       exercises: w.sets.map((s) => ({
@@ -49,7 +49,7 @@ export async function GET() {
       exercise: r.exercise.name,
       weight: r.weight,
       reps: r.reps,
-      achievedAt: r.achievedAt,
+      achievedAt: r.date,
     })),
     nutrition: mealLogs,
     bodyMeasurements,

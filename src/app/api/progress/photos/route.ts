@@ -6,7 +6,7 @@ import { z } from "zod";
 const createPhotoSchema = z.object({
   url: z.string().url(),
   type: z.enum(["FRONT", "SIDE", "BACK"]),
-  takenAt: z.string().optional(),
+  date: z.string().optional(),
 });
 
 export async function GET() {
@@ -15,7 +15,7 @@ export async function GET() {
 
   const photos = await prisma.progressPhoto.findMany({
     where: { userId: session.user.id },
-    orderBy: { takenAt: "desc" },
+    orderBy: { date: "desc" },
   });
 
   return NextResponse.json(photos);
@@ -32,9 +32,9 @@ export async function POST(request: Request) {
     const photo = await prisma.progressPhoto.create({
       data: {
         userId: session.user.id,
-        url: data.url,
+        photoUrl: data.url,
         type: data.type as never,
-        takenAt: data.takenAt ? new Date(data.takenAt) : new Date(),
+        date: data.date ? new Date(data.date) : new Date(),
       },
     });
 
