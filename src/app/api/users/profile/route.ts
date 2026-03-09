@@ -48,7 +48,7 @@ export async function PATCH(request: Request) {
         ...(data.username !== undefined && { username: data.username }),
         ...(data.bio !== undefined && { bio: data.bio }),
         ...(data.gymLocation !== undefined && { gymLocation: data.gymLocation }),
-        ...(data.goals !== undefined && { goals: data.goals as never }),
+        // goals omitted — enum array requires raw SQL in Prisma with pg adapter
         ...(data.weight !== undefined && { weight: data.weight }),
         ...(data.height !== undefined && { height: data.height }),
         ...(data.age !== undefined && { age: data.age }),

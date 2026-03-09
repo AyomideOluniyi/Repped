@@ -7,7 +7,7 @@ const registerSchema = z.object({
   name: z.string().min(1).max(100),
   email: z.string().min(1).refine((v) => v.includes("@") && v.includes("."), "Invalid email"),
   password: z.string().min(8).max(100),
-  goals: z.array(z.enum(["BULKING", "CUTTING", "MAINTAINING", "STRENGTH", "ENDURANCE", "GENERAL_FITNESS"])).optional(),
+  goals: z.array(z.string()).optional(),
 });
 
 export async function POST(request: Request) {
@@ -33,13 +33,8 @@ export async function POST(request: Request) {
         name: data.name,
         email: data.email,
         passwordHash,
-        goals: (data.goals ?? []) as never,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-      },
+      select: { id: true, name: true, email: true },
     });
 
     return NextResponse.json(user, { status: 201 });
