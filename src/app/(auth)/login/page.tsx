@@ -1,18 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/toast";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const [justRegistered, setJustRegistered] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "1") {
+      setJustRegistered(true);
+    }
+  }, [searchParams]);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -75,6 +83,13 @@ export default function LoginPage() {
       transition={{ duration: 0.4 }}
       className="w-full max-w-sm"
     >
+      {justRegistered && (
+        <div className="flex items-center gap-2 p-3 mb-6 rounded-xl bg-accent-green/10 border border-accent-green/30 text-accent-green text-sm">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          <span>Account created! Sign in to get started.</span>
+        </div>
+      )}
+
       <div className="text-center mb-8">
         <h1 className="text-3xl font-black font-display text-text-primary">
           Welcome back

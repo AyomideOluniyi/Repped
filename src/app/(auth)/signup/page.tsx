@@ -67,14 +67,20 @@ export default function SignupPage() {
       }
 
       // Auto sign in after registration
-      const result = await signIn("credentials", {
-        email: form.email,
-        password: form.password,
-        redirect: false,
-      });
-
-      if (result?.error) throw new Error("Account created! Please sign in.");
-      router.push("/dashboard");
+      try {
+        const result = await signIn("credentials", {
+          email: form.email,
+          password: form.password,
+          redirect: false,
+        });
+        if (result?.error) {
+          router.push("/login?registered=1");
+        } else {
+          router.push("/dashboard");
+        }
+      } catch {
+        router.push("/login?registered=1");
+      }
     } catch (err) {
       toast({
         title: "Registration failed",
