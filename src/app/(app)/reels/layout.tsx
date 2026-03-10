@@ -1,4 +1,4 @@
-// Reels is full-screen — no extra padding or scroll wrappers from the shell
+// Reels is full-screen — accounts for desktop sidebar
 export default function ReelsLayout({ children }: { children: React.ReactNode }) {
-  return <div className="fixed inset-0 z-30 bg-black">{children}</div>;
+  return <div className="fixed inset-0 z-30 bg-black md:left-60">{children}</div>;
 }
