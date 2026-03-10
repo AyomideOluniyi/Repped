@@ -1,4 +1,4 @@
 // Reels is full-screen — accounts for desktop sidebar
 export default function ReelsLayout({ children }: { children: React.ReactNode }) {
-  return <div className="fixed inset-0 z-30 bg-black md:left-60">{children}</div>;
+  return <div className="fixed inset-0 z-30 bg-black md:left-60 md:top-14">{children}</div>;
 }

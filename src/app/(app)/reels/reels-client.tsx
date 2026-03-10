@@ -246,7 +246,7 @@ function ReelItem({
   };
 
   return (
-    <div className="relative w-full h-dvh snap-start snap-always bg-black flex-shrink-0 overflow-hidden">
+    <div className="relative w-full h-full snap-start snap-always bg-black flex-shrink-0 overflow-hidden">
       {/* Video — no muted prop; controlled via useEffect ref */}
       <video
         ref={videoRef}
@@ -433,7 +433,7 @@ export function ReelsClient({
 
   if (reels.length === 0) {
     return (
-      <div className="h-dvh flex flex-col items-center justify-center gap-4 bg-black text-white p-6 text-center">
+      <div className="h-full flex flex-col items-center justify-center gap-4 bg-black text-white p-6 text-center">
         <Play className="h-16 w-16 text-white/30" />
         <h2 className="text-xl font-bold">No reels yet</h2>
         <p className="text-white/60 text-sm">Be the first to upload a public workout video!</p>
@@ -447,7 +447,7 @@ export function ReelsClient({
   return (
     <div
       ref={containerRef}
-      className="h-dvh overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+      className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
       style={{ scrollSnapType: "y mandatory" }}
     >
       {reels.map((reel, i) => (
@@ -463,7 +463,7 @@ export function ReelsClient({
         </div>
       ))}
       {loading && (
-        <div className="h-dvh snap-start flex items-center justify-center bg-black">
+        <div className="h-full snap-start flex items-center justify-center bg-black">
           <div className="h-8 w-8 rounded-full border-2 border-accent-green border-t-transparent animate-spin" />
         </div>
       )}
