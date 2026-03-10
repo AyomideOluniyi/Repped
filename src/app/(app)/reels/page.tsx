@@ -23,11 +23,19 @@ export default async function ReelsPage() {
   const hasMore = videos.length > limit;
   const items = hasMore ? videos.slice(0, limit) : videos;
 
-  const likedIds = await prisma.videoFavorite.findMany({
+  const likedIds = userId ? await prisma.videoFavorite.findMany({
     where: { userId, videoId: { in: items.map((v) => v.id) } },
     select: { videoId: true },
-  });
+  }) : [];
   const likedSet = new Set(likedIds.map((l) => l.videoId));
+
+  // Which reel creators does the current user already follow?
+  const creatorIds = [...new Set(items.map((v) => v.user.id))];
+  const followingRows = userId ? await prisma.follow.findMany({
+    where: { followerId: userId, followingId: { in: creatorIds } },
+    select: { followingId: true },
+  }) : [];
+  const followingIds = followingRows.map((f) => f.followingId);
 
   const reels = items.map((v) => ({
     id: v.id,
@@ -47,6 +55,8 @@ export default async function ReelsPage() {
     <ReelsClient
       initialReels={reels}
       initialCursor={hasMore ? items[items.length - 1].id : null}
+      currentUserId={userId}
+      followingIds={followingIds}
     />
   );
 }
