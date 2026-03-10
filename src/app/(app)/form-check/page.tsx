@@ -40,7 +40,8 @@ export default function FormCheckPage() {
     }
     setAnalyzing(true);
     try {
-      await startUpload([file]);
+      // Upload is optional – don't block analysis if it fails
+      startUpload([file]).catch(() => {});
 
       const res = await fetch("/api/ai/form-check", {
         method: "POST",

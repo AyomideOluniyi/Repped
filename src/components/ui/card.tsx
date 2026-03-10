@@ -12,10 +12,10 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "rounded-2xl border border-border bg-surface p-4",
+        "rounded-2xl border border-border bg-surface p-4 shadow-[var(--rp-card-shadow)]",
         glass && "bg-white/5 backdrop-blur-sm border-white/10",
         glow && "shadow-glow",
-        hoverable && "transition-all duration-200 hover:border-border-strong hover:shadow-card-hover cursor-pointer",
+        hoverable && "transition-all duration-200 hover:border-border-strong hover:shadow-card cursor-pointer",
         className
       )}
       {...props}

@@ -9,42 +9,6 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        background: {
-          DEFAULT: "var(--rp-bg)",
-          card:     "var(--rp-bg-card)",
-          elevated: "var(--rp-bg-elevated)",
-          overlay:  "var(--rp-bg-overlay)",
-        },
-        accent: {
-          green:       "#39FF14",
-          "green-dim": "#2BCC10",
-          orange:      "#FF6B2B",
-          "orange-dim":"#CC5522",
-        },
-        surface: {
-          DEFAULT:  "var(--rp-surface)",
-          elevated: "var(--rp-surface-elevated)",
-          hover:    "var(--rp-surface-hover)",
-        },
-        border: {
-          DEFAULT: "var(--rp-border)",
-          subtle:  "var(--rp-border-subtle)",
-          strong:  "var(--rp-border-strong)",
-        },
-        text: {
-          primary:   "var(--rp-text-primary)",
-          secondary: "var(--rp-text-secondary)",
-          muted:     "var(--rp-text-muted)",
-          disabled:  "var(--rp-text-disabled)",
-        },
-        status: {
-          success: "#22C55E",
-          error:   "#EF4444",
-          warning: "#F59E0B",
-          info:    "#3B82F6",
-        },
-      },
       fontFamily: {
         display: ["var(--font-satoshi)", "system-ui", "sans-serif"],
         body:    ["var(--font-dm-sans)", "system-ui", "sans-serif"],

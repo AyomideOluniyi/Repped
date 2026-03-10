@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Plus, Trash2, ChevronDown, Timer, Trophy, Check,
+  Plus, Trash2, Timer, Check,
   Search, X, Save, Play, Pause, RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -359,7 +359,7 @@ export default function NewWorkoutPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[78vh] overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
+              className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[80dvh] overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-border">
@@ -375,7 +375,7 @@ export default function NewWorkoutPage() {
                   autoFocus
                 />
               </div>
-              <div className="overflow-y-auto max-h-[60vh] p-2">
+              <div className="overflow-y-auto max-h-[60dvh] p-2">
                 {searchLoading && (
                   <div className="text-center py-4 text-text-muted text-sm">Searching...</div>
                 )}

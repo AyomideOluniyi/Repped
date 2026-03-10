@@ -1,68 +1,85 @@
 @import "tailwindcss";
 
+/* ── FONT VARIABLE DECLARATIONS ── */
 :root {
   --font-satoshi: "Satoshi", system-ui, sans-serif;
   --font-dm-sans: "DM Sans", system-ui, sans-serif;
 }
 
-/* ── DARK THEME (default) ── */
-html, html.dark {
-  --rp-bg:               #0A0A0A;
-  --rp-bg-card:          #111111;
-  --rp-bg-elevated:      #1A1A1A;
-  --rp-bg-overlay:       rgba(10,10,10,0.85);
-  --rp-surface:          #111111;
-  --rp-surface-elevated: #1A1A1A;
-  --rp-surface-hover:    #222222;
-  --rp-border:           #2A2A2A;
-  --rp-border-subtle:    #1E1E1E;
-  --rp-border-strong:    #3A3A3A;
-  --rp-text-primary:     #FFFFFF;
-  --rp-text-secondary:   #A0A0A0;
-  --rp-text-muted:       #666666;
-  --rp-text-disabled:    #444444;
-  --rp-scroll-thumb:     #2a2a2a;
-  --rp-scroll-hover:     #3a3a3a;
-  --rp-shimmer-a:        #1a1a1a;
-  --rp-shimmer-b:        #2a2a2a;
-  --rp-glass-bg:         rgba(255,255,255,0.05);
-  --rp-glass-border:     rgba(255,255,255,0.1);
+/* ── TAILWIND v4 DESIGN TOKENS: DARK THEME (default) ── */
+@theme {
+  --color-background:          #0A0A0A;
+  --color-background-card:     #111111;
+  --color-background-elevated: #1A1A1A;
+  --color-surface:             #111111;
+  --color-surface-elevated:    #1A1A1A;
+  --color-surface-hover:       #222222;
+  --color-border:              #2A2A2A;
+  --color-border-subtle:       #1E1E1E;
+  --color-border-strong:       #3A3A3A;
+  --color-text-primary:        #FFFFFF;
+  --color-text-secondary:      #A0A0A0;
+  --color-text-muted:          #666666;
+  --color-text-disabled:       #444444;
+  --color-accent-green:        #39FF14;
+  --color-accent-green-dim:    #2BCC10;
+  --color-accent-orange:       #FF6B2B;
+  --color-accent-orange-dim:   #CC5522;
+  --color-status-success:      #22C55E;
+  --color-status-error:        #EF4444;
+  --color-status-warning:      #F59E0B;
+  --color-status-info:         #3B82F6;
 }
 
-/* ── LIGHT THEME ── */
+/* ── LIGHT THEME TOKEN OVERRIDES ── */
 html.light {
-  --rp-bg:               #F2F1ED;
-  --rp-bg-card:          #FFFFFF;
-  --rp-bg-elevated:      #F8F7F3;
-  --rp-bg-overlay:       rgba(242,241,237,0.85);
-  --rp-surface:          #FFFFFF;
-  --rp-surface-elevated: #F2F1ED;
-  --rp-surface-hover:    #E8E7E2;
-  --rp-border:           #E0DED6;
-  --rp-border-subtle:    #ECEAE4;
-  --rp-border-strong:    #C5C3BB;
-  --rp-text-primary:     #161514;
-  --rp-text-secondary:   #6E6C66;
-  --rp-text-muted:       #9C9A94;
-  --rp-text-disabled:    #BEBCB5;
-  --rp-scroll-thumb:     #D0CEC6;
-  --rp-scroll-hover:     #B8B5AD;
-  --rp-shimmer-a:        #ECEAE4;
-  --rp-shimmer-b:        #E0DED6;
-  --rp-glass-bg:         rgba(255,255,255,0.7);
-  --rp-glass-border:     rgba(0,0,0,0.08);
+  --color-background:          #F2F1ED;
+  --color-background-card:     #FFFFFF;
+  --color-background-elevated: #F8F7F3;
+  --color-surface:             #FFFFFF;
+  --color-surface-elevated:    #F2F1ED;
+  --color-surface-hover:       #E8E7E2;
+  --color-border:              #E0DED6;
+  --color-border-subtle:       #ECEAE4;
+  --color-border-strong:       #C5C3BB;
+  --color-text-primary:        #161514;
+  --color-text-secondary:      #6E6C66;
+  --color-text-muted:          #9C9A94;
+  --color-text-disabled:       #BEBCB5;
 }
 
-/* Scrollbar */
+/* ── THEME-AWARE NON-COLOR VARIABLES ── */
+html, html.dark {
+  --rp-scroll-thumb: #2a2a2a;
+  --rp-scroll-hover: #3a3a3a;
+  --rp-shimmer-a:    #1a1a1a;
+  --rp-shimmer-b:    #2a2a2a;
+  --rp-glass-bg:     rgba(255,255,255,0.05);
+  --rp-glass-border: rgba(255,255,255,0.1);
+  --rp-card-shadow:  none;
+  --rp-bg-gradient:  radial-gradient(ellipse 80% 40% at 50% -8%, rgba(57,255,20,0.07) 0%, transparent 60%);
+}
+
+html.light {
+  --rp-scroll-thumb: #D0CEC6;
+  --rp-scroll-hover: #B8B5AD;
+  --rp-shimmer-a:    #ECEAE4;
+  --rp-shimmer-b:    #E0DED6;
+  --rp-glass-bg:     rgba(255,255,255,0.7);
+  --rp-glass-border: rgba(0,0,0,0.08);
+  --rp-card-shadow:  0 1px 3px rgba(0,0,0,0.05), 0 4px 16px rgba(0,0,0,0.05);
+  --rp-bg-gradient:  radial-gradient(ellipse 100% 50% at 50% -5%, rgba(255,107,43,0.06) 0%, transparent 60%);
+}
+
+/* ── SCROLLBAR ── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--rp-scroll-thumb); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--rp-scroll-hover); }
 
-/* Safe area padding for PWA */
+/* ── GLOBAL ── */
 .safe-padding-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-/* Smooth scrolling */
 html {
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
@@ -72,9 +89,12 @@ body {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   overscroll-behavior-y: none;
+  /* Premium ambient background gradient */
+  background-image: var(--rp-bg-gradient);
+  background-attachment: fixed;
 }
 
-/* Glassmorphism utility */
+/* ── GLASSMORPHISM ── */
 .glass {
   background: var(--rp-glass-bg);
   backdrop-filter: blur(12px);
@@ -82,14 +102,14 @@ body {
   border: 1px solid var(--rp-glass-border);
 }
 
-/* Hide scrollbar but keep functionality */
+/* ── SCROLLBAR HIDE ── */
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-/* Neon text glow */
+/* ── NEON GLOW ── */
 .text-glow { text-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
 
-/* Shimmer animation */
+/* ── SHIMMER ── */
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
@@ -105,14 +125,14 @@ body {
   animation: shimmer 1.5s infinite;
 }
 
-/* Card hover lift */
+/* ── CARD LIFT ── */
 .card-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .card-lift:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
 
-/* Focus styles */
+/* ── FOCUS ── */
 :focus-visible { outline: 2px solid #39FF14; outline-offset: 2px; border-radius: 4px; }
 
-/* PR celebration */
+/* ── PR CELEBRATION ── */
 @keyframes confetti-fall {
   0%   { transform: translateY(-100px) rotate(0deg); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }

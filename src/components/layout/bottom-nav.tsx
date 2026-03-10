@@ -19,8 +19,7 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
-      {/* Safe area gradient */}
-      <div className="bg-background/95 backdrop-blur-xl border-t border-border">
+      <div className="bg-background/90 backdrop-blur-2xl border-t border-border/60 shadow-[0_-4px_24px_rgba(0,0,0,0.12)]">
         <div className="flex items-center justify-around px-2 py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           {navItems.map((item) => {
             const isActive = pathname === item.href ||
