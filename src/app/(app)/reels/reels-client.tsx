@@ -277,7 +277,7 @@ function ReelItem({
       )}
 
       {/* Right action sidebar — positioned above bottom nav using CSS var */}
-      <div className="absolute right-3 flex flex-col items-center gap-5" style={{ bottom: "calc(var(--nav-bar-height) + 1.5rem)" }}>
+      <div className="absolute right-3 flex flex-col items-center gap-5" style={{ bottom: "calc(var(--nav-bar-height) + 0.75rem)" }}>
 
         {/* Avatar + follow "+" */}
         <div className="relative">
@@ -350,7 +350,7 @@ function ReelItem({
       </div>
 
       {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 pt-16 px-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" style={{ paddingBottom: "calc(var(--nav-bar-height) + 1.5rem)" }}>
+      <div className="absolute bottom-0 left-0 right-0 pt-16 px-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" style={{ paddingBottom: "calc(var(--nav-bar-height) + 0.75rem)" }}>
         <div className="flex items-center gap-2 mb-1">
           <span className="text-white font-bold text-sm">{reel.user.name ?? reel.user.username ?? "User"}</span>
           {reel.user.username && <span className="text-white/60 text-xs">@{reel.user.username}</span>}

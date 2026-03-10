@@ -37,7 +37,7 @@ export function BottomNav() {
                     whileTap={{ scale: 0.9 }}
                     className="h-10 w-10 rounded-xl bg-accent-green flex items-center justify-center shadow-glow"
                   >
-                    <Icon className="h-4.5 w-4.5 text-background" strokeWidth={2.5} />
+                    <Icon className="h-[22px] w-[22px] text-background" strokeWidth={2.5} />
                   </motion.div>
                 </Link>
               );
@@ -52,11 +52,11 @@ export function BottomNav() {
                 <motion.div
                   whileTap={{ scale: 0.85 }}
                   className={cn(
-                    "relative flex items-center justify-center h-6 w-6 rounded-lg transition-colors duration-200",
+                    "relative flex items-center justify-center h-[26px] w-[26px] rounded-lg transition-colors duration-200",
                     isActive ? "text-accent-green" : "text-text-muted"
                   )}
                 >
-                  <Icon className="h-3.5 w-3.5" strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon className="h-[22px] w-[22px]" strokeWidth={isActive ? 2.5 : 2} />
                   {isActive && (
                     <motion.div
                       layoutId="nav-indicator"
