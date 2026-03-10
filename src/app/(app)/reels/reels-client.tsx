@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check } from "lucide-react";
+import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check, MessageCircle } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -276,8 +276,8 @@ function ReelItem({
         </div>
       )}
 
-      {/* Right action sidebar */}
-      <div className="absolute right-3 bottom-28 flex flex-col items-center gap-5">
+      {/* Right action sidebar — positioned above bottom nav using CSS var */}
+      <div className="absolute right-3 flex flex-col items-center gap-5" style={{ bottom: "calc(var(--nav-bar-height) + 0.5rem)" }}>
 
         {/* Avatar + follow "+" */}
         <div className="relative">
@@ -313,6 +313,14 @@ function ReelItem({
           {likes > 0 && <span className="text-white text-xs font-semibold drop-shadow-lg">{formatCount(likes)}</span>}
         </button>
 
+        {/* Comment — links to video detail */}
+        <Link href={`/videos/${reel.id}`} className="flex flex-col items-center gap-1">
+          <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
+            <MessageCircle className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-white text-xs font-semibold drop-shadow-lg">Comment</span>
+        </Link>
+
         {/* Share — opens in-app friend picker */}
         <button className="flex flex-col items-center gap-1" onClick={() => setShowShare(true)}>
           <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
@@ -342,7 +350,7 @@ function ReelItem({
       </div>
 
       {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-16 px-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 pt-16 px-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" style={{ paddingBottom: "calc(var(--nav-bar-height) + 0.5rem)" }}>
         <div className="flex items-center gap-2 mb-1">
           <span className="text-white font-bold text-sm">{reel.user.name ?? reel.user.username ?? "User"}</span>
           {reel.user.username && <span className="text-white/60 text-xs">@{reel.user.username}</span>}
