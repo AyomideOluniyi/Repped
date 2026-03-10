@@ -4,6 +4,8 @@
 :root {
   --font-satoshi: "Satoshi", system-ui, sans-serif;
   --font-dm-sans: "DM Sans", system-ui, sans-serif;
+  /* Bottom nav height (content ~4.5rem) + safe area — used for fixed element positioning */
+  --nav-bar-height: calc(4.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* ── TAILWIND v4 DESIGN TOKENS: DARK THEME (default) ── */

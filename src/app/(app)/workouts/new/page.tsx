@@ -449,7 +449,7 @@ export default function NewWorkoutPage() {
       </AnimatePresence>
 
       {/* Save bar */}
-      <div className="fixed bottom-16 left-0 right-0 p-4 bg-background/95 backdrop-blur-xl border-t border-border md:bottom-0">
+      <div className="fixed bottom-[var(--nav-bar-height)] left-0 right-0 p-4 bg-background/95 backdrop-blur-xl border-t border-border md:bottom-0">
         <div className="max-w-2xl mx-auto flex gap-3">
           <Button
             variant="outline"

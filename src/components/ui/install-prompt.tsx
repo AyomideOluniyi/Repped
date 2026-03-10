@@ -16,7 +16,7 @@ export function InstallPrompt() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        className="fixed bottom-20 left-4 right-4 z-50 md:bottom-8 md:left-auto md:right-8 md:max-w-sm"
+        className="fixed bottom-[var(--nav-bar-height)] left-4 right-4 z-50 md:bottom-8 md:left-auto md:right-8 md:max-w-sm"
       >
         <div className="bg-surface-elevated border border-border rounded-2xl p-4 shadow-card">
           <div className="flex items-start justify-between gap-3">
