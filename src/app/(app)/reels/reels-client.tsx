@@ -279,13 +279,13 @@ function ReelItem({
       {/* Gradient scrim */}
       <div className="absolute bottom-0 left-0 right-0 h-80 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
-      {/* Bottom overlay — sidebar + description, anchored to bottom above nav */}
+      {/* Bottom overlay — fills full reel height, items-end pulls content to bottom */}
       <div
-        className="absolute bottom-0 left-0 right-0 flex items-end"
-        style={{ paddingBottom: "calc(var(--nav-bar-height) + 0.75rem)" }}
+        className="absolute inset-0 flex items-end justify-between pointer-events-none"
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 65px)" }}
       >
         {/* Bottom-left: description */}
-        <div className="flex-1 px-4 pointer-events-none">
+        <div className="flex-1 px-4 pointer-events-none mr-2">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-white font-bold text-sm">{reel.user.name ?? reel.user.username ?? "User"}</span>
             {reel.user.username && <span className="text-white/60 text-xs">@{reel.user.username}</span>}
@@ -304,7 +304,7 @@ function ReelItem({
         </div>
 
         {/* Right: action sidebar */}
-        <div className="flex flex-col items-center gap-5 px-3 flex-shrink-0">
+        <div className="flex flex-col items-center gap-5 px-3 flex-shrink-0 pointer-events-auto">
 
           {/* Avatar + follow "+" */}
           <div className="relative">
