@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Heart, Volume2, VolumeX, Play, Share2, MessageCircle, Dumbbell } from "lucide-react";
+import { Heart, Volume2, VolumeX, Play, Share2, MessageCircle, Dumbbell, Upload } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -259,6 +259,15 @@ export function ReelsClient({ initialReels, initialCursor }: { initialReels: Ree
   }
 
   return (
+    <div className="relative">
+      {/* Upload button */}
+      <Link
+        href="/videos/upload"
+        className="fixed top-[calc(3.5rem+env(safe-area-inset-top,0px)+0.75rem)] right-3 z-50 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold"
+      >
+        <Upload className="h-3.5 w-3.5" />
+        Upload
+      </Link>
     <div
       ref={containerRef}
       className="h-dvh overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
@@ -279,6 +288,7 @@ export function ReelsClient({ initialReels, initialCursor }: { initialReels: Ree
           <div className="h-8 w-8 rounded-full border-2 border-accent-green border-t-transparent animate-spin" />
         </div>
       )}
+    </div>
     </div>
   );
 }

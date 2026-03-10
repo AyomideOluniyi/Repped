@@ -48,6 +48,17 @@ export default function NewWorkoutPage() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [startTime] = useState(Date.now());
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+
+  // Track keyboard height via visualViewport so the modal stays above the keyboard
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const onResize = () => setKeyboardOffset(window.innerHeight - vv.height - (vv.offsetTop ?? 0));
+    vv.addEventListener("resize", onResize);
+    vv.addEventListener("scroll", onResize);
+    return () => { vv.removeEventListener("resize", onResize); vv.removeEventListener("scroll", onResize); };
+  }, []);
 
   // Rest timer
   const [timerActive, setTimerActive] = useState(false);
@@ -359,7 +370,8 @@ export default function NewWorkoutPage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[80dvh] overflow-hidden pb-[env(safe-area-inset-bottom,0px)]"
+              className="fixed bottom-0 left-0 right-0 bg-surface rounded-t-3xl max-h-[80dvh] overflow-hidden"
+              style={{ bottom: keyboardOffset, paddingBottom: keyboardOffset > 0 ? 0 : "env(safe-area-inset-bottom, 0px)" }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-4 border-b border-border">
@@ -380,7 +392,21 @@ export default function NewWorkoutPage() {
                   <div className="text-center py-4 text-text-muted text-sm">Searching...</div>
                 )}
                 {!searchLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
-                  <div className="text-center py-4 text-text-muted text-sm">No exercises found</div>
+                  <div className="py-2">
+                    <p className="text-center py-2 text-text-muted text-sm">No exercises found</p>
+                    <button
+                      onClick={() => addExercise({ id: `custom-${Date.now()}`, name: searchQuery.trim(), muscleGroups: [], equipment: [] })}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl bg-accent-green/10 border border-accent-green/20 hover:bg-accent-green/15 transition-colors text-left"
+                    >
+                      <div className="h-9 w-9 rounded-xl bg-accent-green/20 flex items-center justify-center shrink-0">
+                        <Plus className="h-4 w-4 text-accent-green" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-accent-green text-sm">Add &quot;{searchQuery.trim()}&quot;</p>
+                        <p className="text-xs text-text-muted">Add as custom exercise</p>
+                      </div>
+                    </button>
+                  </div>
                 )}
                 {searchResults.map((exercise) => (
                   <button
@@ -399,6 +425,20 @@ export default function NewWorkoutPage() {
                     </div>
                   </button>
                 ))}
+                {searchResults.length > 0 && searchQuery.trim() && (
+                  <button
+                    onClick={() => addExercise({ id: `custom-${Date.now()}`, name: searchQuery.trim(), muscleGroups: [], equipment: [] })}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-surface-elevated transition-colors text-left mt-1 border-t border-border pt-3"
+                  >
+                    <div className="h-9 w-9 rounded-xl bg-accent-green/10 flex items-center justify-center shrink-0">
+                      <Plus className="h-4 w-4 text-accent-green" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-text-primary text-sm">Add &quot;{searchQuery.trim()}&quot;</p>
+                      <p className="text-xs text-text-muted">Add as custom exercise</p>
+                    </div>
+                  </button>
+                )}
                 {searchQuery.length < 2 && (
                   <p className="text-center py-4 text-text-muted text-sm">Type to search exercises</p>
                 )}

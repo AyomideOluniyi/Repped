@@ -21,7 +21,7 @@ export function AppShell({ children, className }: AppShellProps) {
         <Header />
         <main
           className={cn(
-            "min-h-[calc(100vh-3.5rem)] pb-20 md:pb-6",
+            "min-h-[calc(100vh-3.5rem)] pb-[calc(5rem+env(safe-area-inset-bottom,0px))] md:pb-6",
             className
           )}
         >

@@ -26,18 +26,20 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 async function fetchGyms(lat: number, lon: number): Promise<Gym[]> {
-  const radius = 5000;
-  const query = `[out:json][timeout:10];(node["leisure"="fitness_centre"](around:${radius},${lat},${lon});node["sport"="fitness"](around:${radius},${lat},${lon}););out body;`;
+  const radius = 8000;
+  const query = `[out:json][timeout:25];(node["leisure"="fitness_centre"](around:${radius},${lat},${lon});way["leisure"="fitness_centre"](around:${radius},${lat},${lon});node["leisure"="sports_centre"](around:${radius},${lat},${lon});node["sport"="fitness"](around:${radius},${lat},${lon});node["amenity"="gym"](around:${radius},${lat},${lon}););out center;`;
   const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
   const data = await res.json();
 
   return (data.elements ?? [])
-    .filter((el: { tags?: { name?: string } }) => el.tags?.name)
-    .map((el: { id: number; lat: number; lon: number; tags: { name?: string; "addr:street"?: string; "addr:housenumber"?: string; "addr:city"?: string } }) => {
-      const km = distanceKm(lat, lon, el.lat, el.lon);
+    .filter((el: { tags?: { name?: string }; lat?: number; center?: { lat: number; lon: number } }) => el.tags?.name && (el.lat != null || el.center != null))
+    .map((el: { id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags: { name?: string; "addr:street"?: string; "addr:housenumber"?: string; "addr:city"?: string } }) => {
+      const elLat = el.lat ?? el.center?.lat ?? 0;
+      const elLon = el.lon ?? el.center?.lon ?? 0;
+      const km = distanceKm(lat, lon, elLat, elLon);
       const dist = km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
       const addr = [el.tags["addr:housenumber"], el.tags["addr:street"], el.tags["addr:city"]].filter(Boolean).join(" ") || "Address unavailable";
-      return { id: String(el.id), name: el.tags.name!, address: addr, distance: dist, lat: el.lat, lon: el.lon };
+      return { id: String(el.id), name: el.tags.name!, address: addr, distance: dist, lat: elLat, lon: elLon };
     })
     .sort((a: Gym, b: Gym) => distanceKm(lat, lon, a.lat, a.lon) - distanceKm(lat, lon, b.lat, b.lon))
     .slice(0, 15);
