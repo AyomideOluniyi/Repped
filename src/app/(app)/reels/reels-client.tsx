@@ -276,96 +276,105 @@ function ReelItem({
         </div>
       )}
 
-      {/* Right action sidebar — positioned above bottom nav using CSS var */}
-      <div className="absolute right-3 flex flex-col items-center gap-5" style={{ bottom: "calc(var(--nav-bar-height) + 0.75rem)" }}>
+      {/* Gradient scrim */}
+      <div className="absolute bottom-0 left-0 right-0 h-80 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
 
-        {/* Avatar + follow "+" */}
-        <div className="relative">
-          <Link href={`/profile/${reel.user.id}`}>
-            <div className="rounded-full ring-2 ring-white">
-              <Avatar src={reel.user.avatar ?? undefined} name={reel.user.name ?? "?"} size="md" />
+      {/* Bottom overlay — sidebar + description, anchored to bottom above nav */}
+      <div
+        className="absolute bottom-0 left-0 right-0 flex items-end"
+        style={{ paddingBottom: "calc(var(--nav-bar-height) + 0.75rem)" }}
+      >
+        {/* Bottom-left: description */}
+        <div className="flex-1 px-4 pointer-events-none">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-white font-bold text-sm">{reel.user.name ?? reel.user.username ?? "User"}</span>
+            {reel.user.username && <span className="text-white/60 text-xs">@{reel.user.username}</span>}
+          </div>
+          <p className="text-white text-sm leading-tight line-clamp-2 mb-2">{reel.title}</p>
+          {reel.muscleGroups.length > 0 && (
+            <div className="flex gap-1.5 flex-wrap">
+              {reel.muscleGroups.slice(0, 3).map((m) => (
+                <span key={m} className="flex items-center gap-1 text-2xs font-semibold text-white/80 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                  <Dumbbell className="h-2.5 w-2.5" />
+                  {m.replace(/_/g, " ")}
+                </span>
+              ))}
             </div>
-          </Link>
-          {!isOwnReel && (
-            <button
-              onClick={handleFollow}
-              className={cn(
-                "absolute -bottom-2.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full flex items-center justify-center border-2 border-black transition-all",
-                following ? "bg-white" : "bg-accent-green"
-              )}
-            >
-              {following
-                ? <Check className="h-2.5 w-2.5 text-black" />
-                : <span className="text-black text-[10px] font-black leading-none">+</span>
-              }
-            </button>
           )}
         </div>
 
-        {/* Like — only show count when > 0 (real interactions only) */}
-        <button className="flex flex-col items-center gap-1" onClick={handleLike}>
-          <div className={cn(
-            "h-11 w-11 rounded-full flex items-center justify-center transition-all",
-            isLiked ? "bg-accent-green/20" : "bg-black/30"
-          )}>
-            <Heart className={cn("h-6 w-6 transition-all", isLiked ? "fill-accent-green text-accent-green scale-110" : "text-white")} />
+        {/* Right: action sidebar */}
+        <div className="flex flex-col items-center gap-5 px-3 flex-shrink-0">
+
+          {/* Avatar + follow "+" */}
+          <div className="relative">
+            <Link href={`/profile/${reel.user.id}`}>
+              <div className="rounded-full ring-2 ring-white">
+                <Avatar src={reel.user.avatar ?? undefined} name={reel.user.name ?? "?"} size="md" />
+              </div>
+            </Link>
+            {!isOwnReel && (
+              <button
+                onClick={handleFollow}
+                className={cn(
+                  "absolute -bottom-2.5 left-1/2 -translate-x-1/2 h-5 w-5 rounded-full flex items-center justify-center border-2 border-black transition-all",
+                  following ? "bg-white" : "bg-accent-green"
+                )}
+              >
+                {following
+                  ? <Check className="h-2.5 w-2.5 text-black" />
+                  : <span className="text-black text-[10px] font-black leading-none">+</span>
+                }
+              </button>
+            )}
           </div>
-          {likes > 0 && <span className="text-white text-xs font-semibold drop-shadow-lg">{formatCount(likes)}</span>}
-        </button>
 
-        {/* Comment — links to video detail */}
-        <Link href={`/videos/${reel.id}`} className="flex flex-col items-center gap-1">
-          <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
-            <MessageCircle className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-white text-xs font-semibold drop-shadow-lg">Comment</span>
-        </Link>
+          {/* Like */}
+          <button className="flex flex-col items-center gap-1" onClick={handleLike}>
+            <div className={cn(
+              "h-11 w-11 rounded-full flex items-center justify-center transition-all",
+              isLiked ? "bg-accent-green/20" : "bg-black/30"
+            )}>
+              <Heart className={cn("h-6 w-6 transition-all", isLiked ? "fill-accent-green text-accent-green scale-110" : "text-white")} />
+            </div>
+            {likes > 0 && <span className="text-white text-xs font-semibold drop-shadow-lg">{formatCount(likes)}</span>}
+          </button>
 
-        {/* Share — opens in-app friend picker */}
-        <button className="flex flex-col items-center gap-1" onClick={() => setShowShare(true)}>
-          <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
-            <Share2 className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-white text-xs font-semibold drop-shadow-lg">Share</span>
-        </button>
+          {/* Comment */}
+          <Link href={`/videos/${reel.id}`} className="flex flex-col items-center gap-1">
+            <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
+              <MessageCircle className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-white text-xs font-semibold drop-shadow-lg">Comment</span>
+          </Link>
 
-        {/* Mute toggle */}
-        <button
-          className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center"
-          onClick={onToggleMute}
-        >
-          {globalMuted
-            ? <VolumeX className="h-5 w-5 text-white" />
-            : <Volume2 className="h-5 w-5 text-white" />
-          }
-        </button>
+          {/* Share */}
+          <button className="flex flex-col items-center gap-1" onClick={() => setShowShare(true)}>
+            <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
+              <Share2 className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-white text-xs font-semibold drop-shadow-lg">Share</span>
+          </button>
 
-        {/* Post / upload */}
-        <Link href="/videos/upload" className="flex flex-col items-center gap-1">
-          <div className="h-11 w-11 rounded-full bg-black/30 border border-white/20 flex items-center justify-center">
-            <Camera className="h-5 w-5 text-white" />
-          </div>
-          <span className="text-white text-xs font-semibold drop-shadow-lg">Post</span>
-        </Link>
-      </div>
+          {/* Mute */}
+          <button
+            className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center"
+            onClick={onToggleMute}
+          >
+            {globalMuted
+              ? <VolumeX className="h-5 w-5 text-white" />
+              : <Volume2 className="h-5 w-5 text-white" />
+            }
+          </button>
 
-      {/* Bottom info */}
-      <div className="absolute bottom-0 left-0 right-0 pt-16 px-4 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" style={{ paddingBottom: "calc(var(--nav-bar-height) + 0.75rem)" }}>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-white font-bold text-sm">{reel.user.name ?? reel.user.username ?? "User"}</span>
-          {reel.user.username && <span className="text-white/60 text-xs">@{reel.user.username}</span>}
+          {/* Post */}
+          <Link href="/videos/upload" className="flex flex-col items-center gap-1">
+            <div className="h-11 w-11 rounded-full bg-black/30 border border-white/20 flex items-center justify-center">
+              <Camera className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-white text-xs font-semibold drop-shadow-lg">Post</span>
+          </Link>
         </div>
-        <p className="text-white text-sm leading-tight line-clamp-2 mb-2">{reel.title}</p>
-        {reel.muscleGroups.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap">
-            {reel.muscleGroups.slice(0, 3).map((m) => (
-              <span key={m} className="flex items-center gap-1 text-2xs font-semibold text-white/80 bg-white/10 backdrop-blur-sm px-2 py-0.5 rounded-full">
-                <Dumbbell className="h-2.5 w-2.5" />
-                {m.replace(/_/g, " ")}
-              </span>
-            ))}
-          </div>
-        )}
       </div>
 
       {showShare && <ShareModal reel={reel} onClose={() => setShowShare(false)} />}
