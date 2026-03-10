@@ -246,13 +246,13 @@ function ReelItem({
   };
 
   return (
-    <div className="relative w-full h-full snap-start snap-always bg-black flex-shrink-0 overflow-hidden">
+    <div className="relative w-full h-dvh snap-start snap-always bg-black flex-shrink-0 overflow-hidden">
       {/* Video — no muted prop; controlled via useEffect ref */}
       <video
         ref={videoRef}
         src={reel.url}
         poster={reel.thumbnailUrl ?? undefined}
-        className="w-full h-full object-cover md:object-contain"
+        className="w-full h-full object-cover"
         loop
         playsInline
         onPlay={() => setPlaying(true)}
@@ -451,7 +451,7 @@ export function ReelsClient({
       style={{ scrollSnapType: "y mandatory" }}
     >
       {reels.map((reel, i) => (
-        <div key={reel.id} data-index={i} className="h-dvh">
+        <div key={reel.id} data-index={i}>
           <ReelItem
             reel={reel}
             isActive={i === activeIndex}
