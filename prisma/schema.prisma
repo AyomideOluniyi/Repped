@@ -147,6 +147,7 @@ model User {
   posts              Post[]
   postLikes          PostLike[]
   postComments       PostComment[]
+  videoComments      VideoComment[]
   challengesCreated  Challenge[]        @relation("ChallengeCreator")
   challengeParticipants ChallengeParticipant[]
   badges             UserBadge[]
@@ -259,6 +260,7 @@ model Video {
 
   user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   favorites VideoFavorite[]
+  comments  VideoComment[]
 
   @@map("videos")
 }
@@ -274,6 +276,23 @@ model VideoFavorite {
 
   @@unique([userId, videoId])
   @@map("video_favorites")
+}
+
+model VideoComment {
+  id        String   @id @default(cuid())
+  videoId   String
+  userId    String
+  content   String   @db.Text
+  parentId  String?
+
+  createdAt DateTime @default(now())
+
+  video   Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent  VideoComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies VideoComment[] @relation("CommentReplies")
+
+  @@map("video_comments")
 }
 
 model VideoPlaylist {

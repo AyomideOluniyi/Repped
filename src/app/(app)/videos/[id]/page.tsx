@@ -18,5 +18,5 @@ export default async function VideoPage({ params }: { params: Promise<{ id: stri
   // Increment view count
   await prisma.video.update({ where: { id }, data: { views: { increment: 1 } } });
 
-  return <VideoPlayerClient video={video} />;
+  return <VideoPlayerClient video={video} currentUserId={session.user.id!} />;
 }

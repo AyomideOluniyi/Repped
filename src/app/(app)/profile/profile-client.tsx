@@ -3,7 +3,8 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import Link from "next/link";
-import { Settings, Trophy, Dumbbell, Video, Users, Calendar, MapPin, Edit3 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Trophy, Dumbbell, Video, Users, Calendar, MapPin, Edit3, MessageCircle } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface PersonalRecord {
 }
 
 export function ProfileClient({ user, recentPRs, isOwn, isFollowing: initialFollowing }: { user: UserProfile; recentPRs: PersonalRecord[]; isOwn: boolean; isFollowing?: boolean }) {
+  const router = useRouter();
   const [following, setFollowing] = useState(initialFollowing ?? false);
   const [followerCount, setFollowerCount] = useState(user._count.followers);
 
@@ -43,6 +45,18 @@ export function ProfileClient({ user, recentPRs, isOwn, isFollowing: initialFoll
     setFollowerCount((c) => c + (next ? 1 : -1));
     const res = await fetch(`/api/users/${user.id}/follow`, { method: next ? "POST" : "DELETE" });
     if (!res.ok) { setFollowing(!next); setFollowerCount((c) => c + (next ? -1 : 1)); }
+  };
+
+  const openMessage = async () => {
+    const res = await fetch("/api/messages/conversations", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ participantId: user.id }),
+    });
+    if (res.ok) {
+      const conv = await res.json();
+      router.push(`/messages/${conv.id}`);
+    }
   };
 
   return (
@@ -63,9 +77,14 @@ export function ProfileClient({ user, recentPRs, isOwn, isFollowing: initialFoll
               </Link>
             </div>
           ) : (
-            <Button size="sm" variant={following ? "secondary" : "default"} onClick={toggleFollow}>
-              {following ? "Following" : "Follow"}
-            </Button>
+            <div className="flex gap-2">
+              <Button size="sm" variant={following ? "secondary" : "default"} onClick={toggleFollow}>
+                {following ? "Following" : "Follow"}
+              </Button>
+              <Button size="sm" variant="secondary" onClick={openMessage} leftIcon={<MessageCircle className="h-3.5 w-3.5" />}>
+                Message
+              </Button>
+            </div>
           )}
         </div>
 
