@@ -11,6 +11,7 @@ const createWorkoutSchema = z.object({
   templateId: z.string().optional(),
   sets: z.array(z.object({
     exerciseId: z.string(),
+    exerciseName: z.string().optional(), // provided when exerciseId starts with "custom-"
     setNumber: z.number(),
     reps: z.number().optional(),
     weight: z.number().optional(),
@@ -68,6 +69,28 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const data = createWorkoutSchema.parse(body);
+
+    // Resolve custom exercise IDs → real DB IDs
+    if (data.sets) {
+      const idMap = new Map<string, string>();
+      for (const set of data.sets) {
+        if (set.exerciseId.startsWith("custom-") && !idMap.has(set.exerciseId)) {
+          const name = set.exerciseName ?? set.exerciseId;
+          // upsert so duplicate names don't create duplicate rows
+          const ex = await prisma.exercise.upsert({
+            where: { name },
+            update: {},
+            create: { name, muscleGroups: [], equipment: [] },
+          });
+          idMap.set(set.exerciseId, ex.id);
+        }
+      }
+      if (idMap.size > 0) {
+        for (const set of data.sets) {
+          if (idMap.has(set.exerciseId)) set.exerciseId = idMap.get(set.exerciseId)!;
+        }
+      }
+    }
 
     const workout = await prisma.workout.create({
       data: {

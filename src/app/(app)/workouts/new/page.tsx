@@ -153,6 +153,7 @@ export default function NewWorkoutPage() {
       const sets = exercises.flatMap((e, ei) =>
         e.sets.map((s, si) => ({
           exerciseId: e.exercise.id,
+          ...(e.exercise.id.startsWith("custom-") && { exerciseName: e.exercise.name }),
           setNumber: ei * 100 + si + 1,
           reps: s.reps ? parseInt(s.reps) : undefined,
           weight: s.weight ? parseFloat(s.weight) : undefined,
