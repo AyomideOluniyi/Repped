@@ -252,7 +252,7 @@ function ReelItem({
         ref={videoRef}
         src={reel.url}
         poster={reel.thumbnailUrl ?? undefined}
-        className="w-full h-full object-cover"
+        className="w-full h-full object-cover md:object-contain"
         loop
         playsInline
         onPlay={() => setPlaying(true)}
@@ -433,7 +433,7 @@ export function ReelsClient({
 
   if (reels.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center gap-4 bg-black text-white p-6 text-center">
+      <div className="h-dvh flex flex-col items-center justify-center gap-4 bg-black text-white p-6 text-center">
         <Play className="h-16 w-16 text-white/30" />
         <h2 className="text-xl font-bold">No reels yet</h2>
         <p className="text-white/60 text-sm">Be the first to upload a public workout video!</p>
@@ -447,11 +447,11 @@ export function ReelsClient({
   return (
     <div
       ref={containerRef}
-      className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
+      className="h-dvh overflow-y-scroll snap-y snap-mandatory scrollbar-hide"
       style={{ scrollSnapType: "y mandatory" }}
     >
       {reels.map((reel, i) => (
-        <div key={reel.id} data-index={i}>
+        <div key={reel.id} data-index={i} className="h-dvh">
           <ReelItem
             reel={reel}
             isActive={i === activeIndex}
@@ -463,7 +463,7 @@ export function ReelsClient({
         </div>
       ))}
       {loading && (
-        <div className="h-full snap-start flex items-center justify-center bg-black">
+        <div className="h-dvh snap-start flex items-center justify-center bg-black">
           <div className="h-8 w-8 rounded-full border-2 border-accent-green border-t-transparent animate-spin" />
         </div>
       )}

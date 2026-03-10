@@ -20,7 +20,7 @@ export function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
       <div className="bg-background/90 backdrop-blur-2xl border-t border-border/60 shadow-[0_-4px_24px_rgba(0,0,0,0.12)]">
-        <div className="flex items-center justify-around px-2 py-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))]">
+        <div className="flex items-center justify-around px-2 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
           {navItems.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -35,9 +35,9 @@ export function BottomNav() {
                 >
                   <motion.div
                     whileTap={{ scale: 0.9 }}
-                    className="h-11 w-11 rounded-2xl bg-accent-green flex items-center justify-center shadow-glow"
+                    className="h-10 w-10 rounded-xl bg-accent-green flex items-center justify-center shadow-glow"
                   >
-                    <Icon className="h-5 w-5 text-background" strokeWidth={2.5} />
+                    <Icon className="h-4.5 w-4.5 text-background" strokeWidth={2.5} />
                   </motion.div>
                 </Link>
               );
@@ -52,11 +52,11 @@ export function BottomNav() {
                 <motion.div
                   whileTap={{ scale: 0.85 }}
                   className={cn(
-                    "relative flex items-center justify-center h-7 w-7 rounded-xl transition-colors duration-200",
+                    "relative flex items-center justify-center h-6 w-6 rounded-lg transition-colors duration-200",
                     isActive ? "text-accent-green" : "text-text-muted"
                   )}
                 >
-                  <Icon className="h-4 w-4" strokeWidth={isActive ? 2.5 : 2} />
+                  <Icon className="h-3.5 w-3.5" strokeWidth={isActive ? 2.5 : 2} />
                   {isActive && (
                     <motion.div
                       layoutId="nav-indicator"
