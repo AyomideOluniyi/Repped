@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useState } from "react";
 import Link from "next/link";
 import { Settings, Trophy, Dumbbell, Video, Users, Calendar, MapPin, Edit3 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -32,7 +33,18 @@ interface PersonalRecord {
   date: Date;
 }
 
-export function ProfileClient({ user, recentPRs, isOwn }: { user: UserProfile; recentPRs: PersonalRecord[]; isOwn: boolean }) {
+export function ProfileClient({ user, recentPRs, isOwn, isFollowing: initialFollowing }: { user: UserProfile; recentPRs: PersonalRecord[]; isOwn: boolean; isFollowing?: boolean }) {
+  const [following, setFollowing] = useState(initialFollowing ?? false);
+  const [followerCount, setFollowerCount] = useState(user._count.followers);
+
+  const toggleFollow = async () => {
+    const next = !following;
+    setFollowing(next);
+    setFollowerCount((c) => c + (next ? 1 : -1));
+    const res = await fetch(`/api/users/${user.id}/follow`, { method: next ? "POST" : "DELETE" });
+    if (!res.ok) { setFollowing(!next); setFollowerCount((c) => c + (next ? -1 : 1)); }
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto">
       {/* Cover gradient */}
@@ -51,7 +63,9 @@ export function ProfileClient({ user, recentPRs, isOwn }: { user: UserProfile; r
               </Link>
             </div>
           ) : (
-            <Button size="sm">Follow</Button>
+            <Button size="sm" variant={following ? "secondary" : "default"} onClick={toggleFollow}>
+              {following ? "Following" : "Follow"}
+            </Button>
           )}
         </div>
 
@@ -75,7 +89,7 @@ export function ProfileClient({ user, recentPRs, isOwn }: { user: UserProfile; r
             { label: "Workouts", value: user._count.workouts, icon: Dumbbell, href: "/workouts" },
             { label: "PRs", value: user._count.personalRecords, icon: Trophy, href: "/progress" },
             { label: "Videos", value: user._count.videos, icon: Video, href: "/videos" },
-            { label: "Followers", value: user._count.followers, icon: Users, href: "#" },
+            { label: "Followers", value: followerCount, icon: Users, href: "#" },
             { label: "Following", value: user._count.following, icon: Users, href: "#" },
           ].map((stat) => (
             <Link key={stat.label} href={stat.href} className="text-center group">

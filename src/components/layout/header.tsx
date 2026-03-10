@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { useSession } from "next-auth/react";
 import { useTheme } from "@/components/providers/theme-provider";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const pageTitles: Record<string, string> = {
   "/dashboard":            "Dashboard",
@@ -42,9 +43,19 @@ export function Header({ className }: HeaderProps) {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { theme, toggleTheme } = useTheme();
+  const [unreadCount, setUnreadCount] = useState(0);
   const title = pageTitles[pathname] ?? "REPPED";
   const isDashboard = pathname === "/dashboard";
   const isSubPage = pathname.split("/").length > 2;
+
+  // Fetch unread notification count on mount and when leaving the notifications page
+  useEffect(() => {
+    if (!session?.user) return;
+    fetch("/api/notifications")
+      .then((r) => r.json())
+      .then((d) => setUnreadCount(d.unreadCount ?? 0))
+      .catch(() => {});
+  }, [pathname, session?.user]);
 
   return (
     <header
@@ -104,7 +115,11 @@ export function Header({ className }: HeaderProps) {
             <Button variant="ghost" size="icon-sm" className="text-text-muted hover:text-text-primary">
               <Bell className="h-4 w-4" />
             </Button>
-            <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-accent-green animate-pulse" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[1rem] h-4 px-0.5 rounded-full bg-accent-green text-background text-[10px] font-black flex items-center justify-center leading-none">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </Link>
 
           <Link href="/profile" className="ml-1">

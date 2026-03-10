@@ -97,6 +97,20 @@ export async function POST(request: Request) {
       },
     });
 
+    // Milestone: first workout ever
+    const workoutCount = await prisma.workout.count({ where: { userId: session.user.id } });
+    if (workoutCount === 1) {
+      await prisma.notification.create({
+        data: {
+          userId: session.user.id,
+          type: "PR_CELEBRATION",
+          title: "First workout logged! 🎉",
+          body: "Welcome to REPPED. The journey of a thousand gains begins with a single rep.",
+          data: { workoutId: workout.id },
+        },
+      }).catch(() => {});
+    }
+
     // Check for PRs
     if (data.sets) {
       for (const set of data.sets) {
@@ -110,15 +124,28 @@ export async function POST(request: Request) {
           });
 
           if (!existingPR || set.weight > existingPR.weight) {
-            await prisma.personalRecord.create({
+            const [newPR] = await Promise.all([
+              prisma.personalRecord.create({
+                data: {
+                  userId: session.user.id,
+                  exerciseId: set.exerciseId,
+                  weight: set.weight,
+                  reps: set.reps,
+                  workoutId: workout.id,
+                },
+                include: { exercise: true },
+              }),
+            ]);
+            // Fire PR notification
+            await prisma.notification.create({
               data: {
                 userId: session.user.id,
-                exerciseId: set.exerciseId,
-                weight: set.weight,
-                reps: set.reps,
-                workoutId: workout.id,
+                type: "PR_CELEBRATION",
+                title: `New personal record! 🏆`,
+                body: `${newPR.exercise.name}: ${set.weight}kg × ${set.reps} reps`,
+                data: { exerciseId: set.exerciseId, weight: set.weight, reps: set.reps },
               },
-            });
+            }).catch(() => {});
           }
         }
       }
