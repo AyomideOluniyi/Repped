@@ -66,7 +66,7 @@ export function BottomNav() {
                 </motion.div>
                 <span
                   className={cn(
-                    "text-[9px] font-medium transition-colors duration-200",
+                    "text-[7px] font-medium transition-colors duration-200",
                     isActive ? "text-accent-green" : "text-text-muted"
                   )}
                 >
