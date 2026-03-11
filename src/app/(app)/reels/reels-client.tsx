@@ -282,7 +282,7 @@ function ReelItem({
       {/* Bottom overlay — fills full reel height, items-end pulls content to bottom */}
       <div
         className="absolute inset-0 flex items-end justify-between pointer-events-none"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 95px)" }}
+        style={{ paddingBottom: "var(--nav-bar-height)" }}
       >
         {/* Bottom-left: description */}
         <div className="flex-1 px-4 pointer-events-none mr-2">
