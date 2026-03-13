@@ -150,7 +150,7 @@ export default function NotificationsPage() {
                   {isUnread && <div className="h-2 w-2 rounded-full bg-accent-green" />}
                   <button
                     onClick={(e) => deleteNotification(e, n.id)}
-                    className="h-6 w-6 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-all opacity-0 group-hover:opacity-100"
+                    className="h-6 w-6 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-all"
                     aria-label="Delete notification"
                   >
                     <X className="h-3.5 w-3.5" />
