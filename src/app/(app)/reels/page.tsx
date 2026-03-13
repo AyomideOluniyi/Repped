@@ -14,7 +14,7 @@ export default async function ReelsPage() {
     where: { isPublic: true },
     include: {
       user: { select: { id: true, name: true, avatar: true, username: true } },
-      _count: { select: { favorites: true } },
+      _count: { select: { favorites: true, comments: true } },
     },
     orderBy: [{ views: "desc" }, { createdAt: "desc" }],
     take: limit + 1,
@@ -46,6 +46,7 @@ export default async function ReelsPage() {
     muscleGroups: v.muscleGroups as string[],
     views: v.views,
     likes: v._count.favorites,
+    comments: v._count.comments,
     isLiked: likedSet.has(v.id),
     createdAt: v.createdAt,
     user: v.user,

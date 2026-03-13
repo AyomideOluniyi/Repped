@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, MessageCircle, Share2, Plus, Users, X, Send, Search, Check } from "lucide-react";
+import { Heart, MessageCircle, Share2, Plus, Users, X, Send, Search, Check, ImagePlus } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { formatRelativeTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
+import { useUploadThing } from "@/lib/uploadthing";
 
 interface PostComment {
   id: string;
@@ -264,8 +265,32 @@ export function SocialClient({ posts, currentUserId }: { posts: Post[]; currentU
   const [newPost, setNewPost] = useState("");
   const [posting, setPosting] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [commentPost, setCommentPost] = useState<Post | null>(null);
   const [sharePost, setSharePost] = useState<Post | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const { startUpload, isUploading } = useUploadThing("imageUploader");
+  const { toast } = useToast();
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (selectedImages.length + files.length > 4) {
+      toast({ title: "Max 4 photos per post", variant: "error" });
+      return;
+    }
+    setSelectedImages((prev) => [...prev, ...files]);
+    files.forEach((f) => {
+      const url = URL.createObjectURL(f);
+      setImagePreviews((prev) => [...prev, url]);
+    });
+    e.target.value = "";
+  };
+
+  const removeImage = (i: number) => {
+    setSelectedImages((prev) => prev.filter((_, idx) => idx !== i));
+    setImagePreviews((prev) => prev.filter((_, idx) => idx !== i));
+  };
 
   const toggleLike = async (postId: string) => {
     setLikedPosts((prev) => {
@@ -280,14 +305,24 @@ export function SocialClient({ posts, currentUserId }: { posts: Post[]; currentU
   const submitPost = async () => {
     if (!newPost.trim()) return;
     setPosting(true);
-    await fetch("/api/posts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content: newPost }),
-    });
-    setNewPost("");
-    setShowCompose(false);
-    setPosting(false);
+    try {
+      let mediaUrls: string[] = [];
+      if (selectedImages.length > 0) {
+        const uploaded = await startUpload(selectedImages);
+        mediaUrls = (uploaded ?? []).map((u) => u.ufsUrl);
+      }
+      await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: newPost, mediaUrls }),
+      });
+      setNewPost("");
+      setSelectedImages([]);
+      setImagePreviews([]);
+      setShowCompose(false);
+    } finally {
+      setPosting(false);
+    }
   };
 
   return (
@@ -304,9 +339,37 @@ export function SocialClient({ posts, currentUserId }: { posts: Post[]; currentU
               className="w-full bg-transparent text-text-primary placeholder:text-text-muted resize-none focus:outline-none text-sm min-h-[80px]"
               autoFocus
             />
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" size="sm" onClick={() => setShowCompose(false)}>Cancel</Button>
-              <Button size="sm" loading={posting} onClick={submitPost} disabled={!newPost.trim()}>Post</Button>
+            {imagePreviews.length > 0 && (
+              <div className={`grid gap-2 ${imagePreviews.length === 1 ? "grid-cols-1" : "grid-cols-2"}`}>
+                {imagePreviews.map((src, i) => (
+                  <div key={i} className="relative rounded-xl overflow-hidden aspect-square">
+                    <img src={src} className="w-full h-full object-cover" alt="" />
+                    <button
+                      onClick={() => removeImage(i)}
+                      className="absolute top-1.5 right-1.5 h-6 w-6 bg-black/60 rounded-full flex items-center justify-center"
+                    >
+                      <X className="h-3.5 w-3.5 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <input ref={imageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageSelect} />
+                <button
+                  onClick={() => imageInputRef.current?.click()}
+                  disabled={selectedImages.length >= 4}
+                  className="flex items-center gap-1.5 text-xs text-text-muted hover:text-accent-green transition-colors disabled:opacity-40"
+                >
+                  <ImagePlus className="h-4 w-4" />
+                  Photo {selectedImages.length > 0 && `(${selectedImages.length}/4)`}
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="sm" onClick={() => { setShowCompose(false); setSelectedImages([]); setImagePreviews([]); }}>Cancel</Button>
+                <Button size="sm" loading={posting || isUploading} onClick={submitPost} disabled={!newPost.trim()}>Post</Button>
+              </div>
             </div>
           </div>
         ) : (

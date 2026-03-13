@@ -200,9 +200,32 @@ function ReelItem({
   const [showHeart, setShowHeart] = useState(false);
   const [following, setFollowing] = useState(initialFollowing);
   const [showShare, setShowShare] = useState(false);
+  const [generatedPoster, setGeneratedPoster] = useState<string | null>(null);
   const lastTap = useRef(0);
   const viewTracked = useRef(false);
+  const didCapture = useRef(false);
   const isOwnReel = reel.user.id === currentUserId;
+
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (!video || reel.thumbnailUrl || didCapture.current) return;
+    video.currentTime = 1;
+  };
+
+  const handleSeeked = () => {
+    const video = videoRef.current;
+    if (!video || reel.thumbnailUrl || didCapture.current) return;
+    try {
+      const canvas = document.createElement("canvas");
+      const w = Math.min(video.videoWidth, 480);
+      const h = Math.round(w * video.videoHeight / video.videoWidth);
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d")?.drawImage(video, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+      if (dataUrl !== "data:,") { setGeneratedPoster(dataUrl); didCapture.current = true; }
+    } catch {}
+    if (!isActive) video.currentTime = 0;
+  };
 
   // Auto-play / pause + unique view tracking
   useEffect(() => {
@@ -266,10 +289,13 @@ function ReelItem({
       <video
         ref={videoRef}
         src={reel.url}
-        poster={reel.thumbnailUrl ?? undefined}
+        poster={reel.thumbnailUrl ?? generatedPoster ?? undefined}
         className="w-full h-full object-cover"
         loop
         playsInline
+        preload="metadata"
+        onLoadedMetadata={handleLoadedMetadata}
+        onSeeked={handleSeeked}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onClick={handleDoubleTap}
