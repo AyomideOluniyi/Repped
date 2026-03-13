@@ -18,7 +18,7 @@ export async function GET() {
     orderBy: { date: "desc" },
   });
 
-  return NextResponse.json(photos);
+  return NextResponse.json(photos.map((p) => ({ id: p.id, url: p.photoUrl, type: p.type, takenAt: p.date })));
 }
 
 export async function POST(request: Request) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(photo, { status: 201 });
+    return NextResponse.json({ id: photo.id, url: photo.photoUrl, type: photo.type, takenAt: photo.date }, { status: 201 });
   } catch (err) {
     if (err instanceof z.ZodError) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Camera } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
@@ -68,23 +68,22 @@ export default function ProgressPhotosPage() {
         ))}
       </div>
 
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        capture="user"
-        className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoAdd(f); }}
-      />
+      {/* Hidden inputs: one for camera, one for gallery */}
+      <input ref={fileRef} type="file" accept="image/*" capture="environment" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoAdd(f); }} />
+      <input id="gallery-input" type="file" accept="image/*" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) handlePhotoAdd(f); }} />
 
-      <Button
-        className="w-full"
-        leftIcon={<Camera className="h-4 w-4" />}
-        onClick={() => fileRef.current?.click()}
-        loading={uploading}
-      >
-        Add {photoType.charAt(0) + photoType.slice(1).toLowerCase()} Photo
-      </Button>
+      <div className="flex gap-2">
+        <Button className="flex-1" leftIcon={<Camera className="h-4 w-4" />}
+          onClick={() => fileRef.current?.click()} loading={uploading} disabled={uploading}>
+          Camera
+        </Button>
+        <Button variant="secondary" className="flex-1" leftIcon={<Upload className="h-4 w-4" />}
+          onClick={() => document.getElementById("gallery-input")?.click()} loading={uploading} disabled={uploading}>
+          Upload
+        </Button>
+      </div>
 
       {filtered.length === 0 ? (
         <Card className="text-center py-12">
