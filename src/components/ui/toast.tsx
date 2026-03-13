@@ -1,26 +1,9 @@
 "use client";
 
 import * as ToastPrimitive from "@radix-ui/react-toast";
-import { cva, type VariantProps } from "class-variance-authority";
-import { X, CheckCircle2, XCircle, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createContext, useContext, useState, useCallback } from "react";
-
-const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-2xl border p-4 shadow-card transition-all duration-300 data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-fade-up data-[state=closed]:opacity-0",
-  {
-    variants: {
-      variant: {
-        default: "border-border bg-surface-elevated",
-        success: "border-status-success/30 bg-status-success/10",
-        error: "border-status-error/30 bg-status-error/10",
-        warning: "border-status-warning/30 bg-status-warning/10",
-        info: "border-status-info/30 bg-status-info/10",
-      },
-    },
-    defaultVariants: { variant: "default" },
-  }
-);
 
 interface Toast {
   id: string;
@@ -39,9 +22,9 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const addToast = useCallback((toast: Omit<Toast, "id">) => {
+  const addToast = useCallback((t: Omit<Toast, "id">) => {
     const id = Math.random().toString(36).slice(2);
-    setToasts((prev) => [...prev, { ...toast, id }]);
+    setToasts((prev) => [...prev, { ...t, id }]);
   }, []);
 
   const removeToast = useCallback((id: string) => {
@@ -56,40 +39,46 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     info: <Info className="h-5 w-5 text-status-info shrink-0" />,
   };
 
+  const variantStyles: Record<NonNullable<Toast["variant"]> | "default", string> = {
+    default: "bg-surface-elevated border-border",
+    success: "bg-surface-elevated border-status-success/40",
+    error: "bg-surface-elevated border-status-error/40",
+    warning: "bg-surface-elevated border-status-warning/40",
+    info: "bg-surface-elevated border-status-info/40",
+  };
+
   return (
     <ToastContext.Provider value={{ toast: addToast }}>
-      <ToastPrimitive.Provider swipeDirection="right">
+      <ToastPrimitive.Provider swipeDirection="up">
         {children}
         {toasts.map((t) => (
           <ToastPrimitive.Root
             key={t.id}
-            className={cn(toastVariants({ variant: t.variant }))}
             duration={t.duration ?? 1500}
             onOpenChange={(open) => !open && removeToast(t.id)}
             defaultOpen
+            className={cn(
+              "pointer-events-auto flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-xl",
+              "data-[state=open]:animate-in data-[state=open]:fade-in data-[state=open]:zoom-in-95",
+              "data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=closed]:zoom-out-95",
+              "transition-all duration-200",
+              variantStyles[t.variant ?? "default"]
+            )}
           >
-            <div className="flex items-start gap-3 flex-1">
-              {icons[t.variant ?? "default"]}
-              <div className="flex-1">
-                <ToastPrimitive.Title className="text-sm font-semibold text-text-primary">
-                  {t.title}
-                </ToastPrimitive.Title>
-                {t.description && (
-                  <ToastPrimitive.Description className="text-xs text-text-secondary mt-0.5">
-                    {t.description}
-                  </ToastPrimitive.Description>
-                )}
-              </div>
+            {icons[t.variant ?? "default"]}
+            <div className="flex-1">
+              <ToastPrimitive.Title className="text-sm font-semibold text-text-primary">
+                {t.title}
+              </ToastPrimitive.Title>
+              {t.description && (
+                <ToastPrimitive.Description className="text-xs text-text-secondary mt-0.5">
+                  {t.description}
+                </ToastPrimitive.Description>
+              )}
             </div>
-            <ToastPrimitive.Close
-              className="opacity-0 group-hover:opacity-100 transition-opacity text-text-muted hover:text-text-primary"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </ToastPrimitive.Close>
           </ToastPrimitive.Root>
         ))}
-        <ToastPrimitive.Viewport className="fixed top-[3.75rem] left-4 right-4 z-50 flex flex-col gap-2 max-w-sm mx-auto pointer-events-none" />
+        <ToastPrimitive.Viewport className="fixed inset-0 z-[200] flex items-center justify-center pointer-events-none px-10" />
       </ToastPrimitive.Provider>
     </ToastContext.Provider>
   );
