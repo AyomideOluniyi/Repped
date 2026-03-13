@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Play, Upload, Search, Filter, Lock, Globe, Eye } from "lucide-react";
+import { Play, Upload, Search, Lock, Globe, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const MUSCLE_GROUPS = [
   "All", "CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS",
@@ -25,6 +24,45 @@ interface Video {
   views: number;
   createdAt: Date;
   user: { id: string; name: string | null; avatar: string | null };
+}
+
+function VideoThumbnail({ src, title }: { src: string; title: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [poster, setPoster] = useState<string | null>(null);
+  const captured = useRef(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onMetadata = () => { video.currentTime = 1; };
+    const onSeeked = () => {
+      if (captured.current) return;
+      try {
+        const canvas = document.createElement("canvas");
+        const w = Math.min(video.videoWidth, 480);
+        const h = Math.round(w * video.videoHeight / video.videoWidth);
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d")?.drawImage(video, 0, 0, w, h);
+        const url = canvas.toDataURL("image/jpeg", 0.7);
+        if (url !== "data:,") { setPoster(url); captured.current = true; }
+      } catch {}
+    };
+    video.addEventListener("loadedmetadata", onMetadata);
+    video.addEventListener("seeked", onSeeked);
+    return () => { video.removeEventListener("loadedmetadata", onMetadata); video.removeEventListener("seeked", onSeeked); };
+  }, []);
+
+  return (
+    <>
+      <video ref={videoRef} src={src} preload="metadata" className="hidden" muted playsInline />
+      {poster
+        ? <img src={poster} alt={title} className="w-full h-full object-cover" />
+        : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface to-surface-elevated">
+            <Play className="h-8 w-8 text-text-muted" />
+          </div>
+      }
+    </>
+  );
 }
 
 function formatDuration(seconds: number): string {
@@ -99,13 +137,10 @@ export function VideosClient({ videos, currentUserId }: { videos: Video[]; curre
                 <div className="rounded-2xl overflow-hidden border border-border bg-surface-elevated hover:border-border-strong transition-colors group">
                   {/* Thumbnail */}
                   <div className="relative aspect-video bg-surface">
-                    {video.thumbnailUrl ? (
-                      <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface to-surface-elevated">
-                        <Play className="h-8 w-8 text-text-muted" />
-                      </div>
-                    )}
+                    {video.thumbnailUrl
+                      ? <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
+                      : <VideoThumbnail src={video.url} title={video.title} />
+                    }
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                       <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
                         <Play className="h-5 w-5 text-white fill-white ml-0.5" />
