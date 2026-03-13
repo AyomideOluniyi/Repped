@@ -27,7 +27,8 @@ interface Video {
   user: { id: string; name: string | null; avatar: string | null };
 }
 
-// Renders the video element paused at 1s — avoids CORS canvas issues
+// Uses autoPlay+muted to force mobile browsers (incl. iOS Safari) to buffer data,
+// then pauses at 1s for a stable thumbnail frame.
 function VideoThumbnail({ src }: { src: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [ready, setReady] = useState(false);
@@ -35,12 +36,12 @@ function VideoThumbnail({ src }: { src: string }) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    const onMetadata = () => { video.currentTime = 1; };
-    const onSeeked = () => setReady(true);
-    video.addEventListener("loadedmetadata", onMetadata);
+    const onCanPlay = () => { video.currentTime = 1; };
+    const onSeeked = () => { video.pause(); setReady(true); };
+    video.addEventListener("canplay", onCanPlay);
     video.addEventListener("seeked", onSeeked);
     return () => {
-      video.removeEventListener("loadedmetadata", onMetadata);
+      video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("seeked", onSeeked);
     };
   }, []);
@@ -50,7 +51,8 @@ function VideoThumbnail({ src }: { src: string }) {
       <video
         ref={videoRef}
         src={src}
-        preload="metadata"
+        preload="auto"
+        autoPlay
         muted
         playsInline
         className={`w-full h-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
