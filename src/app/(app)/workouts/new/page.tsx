@@ -50,12 +50,7 @@ export default function NewWorkoutPage() {
   const [startTime] = useState(Date.now());
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
-  // "Continue today's workout" state
-  const [todayWorkout, setTodayWorkout] = useState<{ id: string; name: string } | null>(null);
-  const [appendMode, setAppendMode] = useState(false); // true = PATCHing existing workout
-  const [showTodayBanner, setShowTodayBanner] = useState(false);
-
-  // Check for an existing workout today
+  // Redirect to today's workout if one already exists
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -65,10 +60,10 @@ export default function NewWorkoutPage() {
       .then((r) => r.json())
       .then((data) => {
         const w = data.workouts?.[0];
-        if (w) { setTodayWorkout({ id: w.id, name: w.name }); setShowTodayBanner(true); }
+        if (w) router.replace(`/workouts/${w.id}`);
       })
       .catch(() => {});
-  }, []);
+  }, [router]);
 
   // Track keyboard height via visualViewport so the modal stays above the keyboard
   useEffect(() => {
@@ -181,30 +176,16 @@ export default function NewWorkoutPage() {
         }))
       );
 
-      let workoutId: string;
+      const duration = Math.round((Date.now() - startTime) / 1000);
+      const res = await fetch("/api/workouts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: workoutName, duration, sets }),
+      });
+      if (!res.ok) throw new Error("Failed to save");
+      const { id: workoutId } = await res.json();
 
-      if (appendMode && todayWorkout) {
-        // Append sets to existing today's workout
-        const res = await fetch(`/api/workouts/${todayWorkout.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sets }),
-        });
-        if (!res.ok) throw new Error("Failed to update");
-        workoutId = todayWorkout.id;
-      } else {
-        const duration = Math.round((Date.now() - startTime) / 1000);
-        const res = await fetch("/api/workouts", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: workoutName, duration, sets }),
-        });
-        if (!res.ok) throw new Error("Failed to save");
-        const workout = await res.json();
-        workoutId = workout.id;
-      }
-
-      toast({ title: appendMode ? "Added to workout! 💪" : "Workout saved! 💪", variant: "success" });
+      toast({ title: "Workout saved! 💪", variant: "success" });
       await new Promise((r) => setTimeout(r, 500));
       router.push(`/workouts/${workoutId}`);
     } catch {
@@ -228,43 +209,6 @@ export default function NewWorkoutPage() {
           placeholder="Workout name..."
         />
       </div>
-
-      {/* Continue today's workout banner */}
-      <AnimatePresence>
-        {showTodayBanner && todayWorkout && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className={`mx-4 mt-3 px-4 py-3 rounded-2xl border flex items-center gap-3 ${appendMode ? "bg-accent-green/10 border-accent-green/30" : "bg-surface-elevated border-border"}`}>
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-text-muted">Workout logged today</p>
-                <p className="text-sm font-bold text-text-primary truncate">{todayWorkout.name}</p>
-              </div>
-              {appendMode ? (
-                <button
-                  onClick={() => setAppendMode(false)}
-                  className="text-xs font-semibold text-accent-green shrink-0"
-                >
-                  Start new instead
-                </button>
-              ) : (
-                <button
-                  onClick={() => setAppendMode(true)}
-                  className="text-xs font-bold text-accent-green bg-accent-green/10 px-3 py-1.5 rounded-xl shrink-0"
-                >
-                  Add to it
-                </button>
-              )}
-              <button onClick={() => setShowTodayBanner(false)} className="text-text-muted shrink-0">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Rest timer */}
       <AnimatePresence>

@@ -54,7 +54,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {toasts.map((t) => (
           <ToastPrimitive.Root
             key={t.id}
-            duration={t.duration ?? 1500}
+            duration={t.duration ?? 800}
             onOpenChange={(open) => !open && removeToast(t.id)}
             defaultOpen
             className={cn(

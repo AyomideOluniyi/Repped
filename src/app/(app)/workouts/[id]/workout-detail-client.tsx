@@ -302,11 +302,13 @@ export function WorkoutDetailClient({ workout }: { workout: Workout }) {
             <div>
               <p className="font-bold text-text-primary">{group.name}</p>
               <div className="flex gap-1 mt-0.5">
-                {group.muscleGroups.slice(0, 2).map((m) => (
+                {group.muscleGroups.length > 0 ? group.muscleGroups.slice(0, 2).map((m) => (
                   <Badge key={m} variant="secondary" className="text-2xs">
                     {m.replace(/_/g, " ")}
                   </Badge>
-                ))}
+                )) : (
+                  <Badge variant="secondary" className="text-2xs">Custom</Badge>
+                )}
               </div>
             </div>
             <Trophy className="h-4 w-4 text-status-warning opacity-0" />
