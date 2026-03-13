@@ -202,11 +202,14 @@ function ReelItem({
   const [showHeart, setShowHeart] = useState(false);
   const [following, setFollowing] = useState(initialFollowing);
   const [showShare, setShowShare] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const lastTap = useRef(0);
   const viewTracked = useRef(false);
   const isOwnReel = reel.user.id === currentUserId;
 
   const handleDelete = async () => {
+    setDeleting(true);
     await fetch(`/api/videos/${reel.id}`, { method: "DELETE" }).catch(() => {});
     onDelete(reel.id);
   };
@@ -403,7 +406,7 @@ function ReelItem({
 
           {/* Delete — own reels only */}
           {isOwnReel && (
-            <button className="flex flex-col items-center gap-1" onClick={handleDelete}>
+            <button className="flex flex-col items-center gap-1" onClick={() => setShowDeleteConfirm(true)}>
               <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
                 <Trash2 className="h-5 w-5 text-red-400" />
               </div>
@@ -414,6 +417,30 @@ function ReelItem({
       </div>
 
       {showShare && <ShareModal reel={reel} onClose={() => setShowShare(false)} />}
+
+      {/* Delete confirmation sheet */}
+      {showDeleteConfirm && (
+        <div className="absolute inset-0 z-50 flex items-end" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="w-full bg-surface rounded-t-2xl p-4 pb-8 space-y-3" onClick={(e) => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+            <p className="text-text-primary font-bold text-center text-base">Delete this reel?</p>
+            <p className="text-text-secondary text-sm text-center">This can&apos;t be undone.</p>
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="w-full py-3 rounded-xl bg-red-500 text-white font-bold text-sm disabled:opacity-60"
+            >
+              {deleting ? "Deleting…" : "Delete"}
+            </button>
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="w-full py-3 rounded-xl bg-surface-elevated text-text-primary font-semibold text-sm"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
