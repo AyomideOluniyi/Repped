@@ -171,6 +171,7 @@ export default function NewWorkoutPage() {
       if (!res.ok) throw new Error("Failed to save");
       const workout = await res.json();
       toast({ title: "Workout saved! 💪", variant: "success" });
+      await new Promise((r) => setTimeout(r, 900));
       router.push(`/workouts/${workout.id}`);
     } catch {
       toast({ title: "Failed to save workout", variant: "error" });

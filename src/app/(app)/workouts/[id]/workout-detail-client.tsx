@@ -241,6 +241,7 @@ export function WorkoutDetailClient({ workout }: { workout: Workout }) {
     const res = await fetch(`/api/workouts/${workout.id}`, { method: "DELETE" });
     if (res.ok) {
       toast({ title: "Workout deleted", variant: "success" });
+      await new Promise((r) => setTimeout(r, 900));
       router.push("/workouts");
     } else {
       toast({ title: "Failed to delete", variant: "error" });
