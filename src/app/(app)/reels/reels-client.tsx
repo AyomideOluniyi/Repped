@@ -181,6 +181,7 @@ function ShareModal({ reel, onClose }: { reel: Reel; onClose: () => void }) {
 function ReelItem({
   reel,
   isActive,
+  shouldPreload,
   globalMuted,
   onToggleMute,
   currentUserId,
@@ -189,6 +190,7 @@ function ReelItem({
 }: {
   reel: Reel;
   isActive: boolean;
+  shouldPreload: boolean;
   globalMuted: boolean;
   onToggleMute: () => void;
   currentUserId: string;
@@ -280,7 +282,7 @@ function ReelItem({
         className="w-full h-full object-cover"
         loop
         playsInline
-        preload="auto"
+        preload={isActive || shouldPreload ? "auto" : "none"}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onClick={handleDoubleTap}
@@ -536,6 +538,7 @@ export function ReelsClient({
           <ReelItem
             reel={reel}
             isActive={i === activeIndex}
+            shouldPreload={i === activeIndex + 1}
             globalMuted={muted}
             onToggleMute={() => setMuted((m) => !m)}
             currentUserId={currentUserId}

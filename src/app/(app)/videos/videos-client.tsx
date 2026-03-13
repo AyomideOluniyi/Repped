@@ -27,13 +27,26 @@ interface Video {
   user: { id: string; name: string | null; avatar: string | null };
 }
 
-// Uses autoPlay+muted to force mobile browsers (incl. iOS Safari) to buffer data,
-// then pauses at 1s for a stable thumbnail frame.
+// Lazy-loads via IntersectionObserver — only buffers when card enters viewport.
 function VideoThumbnail({ src }: { src: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [visible, setVisible] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
     const video = videoRef.current;
     if (!video) return;
     const onCanPlay = () => { video.currentTime = 1; };
@@ -44,19 +57,21 @@ function VideoThumbnail({ src }: { src: string }) {
       video.removeEventListener("canplay", onCanPlay);
       video.removeEventListener("seeked", onSeeked);
     };
-  }, []);
+  }, [visible]);
 
   return (
-    <div className="w-full h-full relative">
-      <video
-        ref={videoRef}
-        src={src}
-        preload="auto"
-        autoPlay
-        muted
-        playsInline
-        className={`w-full h-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
-      />
+    <div ref={containerRef} className="w-full h-full relative">
+      {visible && (
+        <video
+          ref={videoRef}
+          src={src}
+          preload="auto"
+          autoPlay
+          muted
+          playsInline
+          className={`w-full h-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+        />
+      )}
       {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface to-surface-elevated">
           <div className="h-5 w-5 rounded-full border-2 border-text-muted border-t-transparent animate-spin" />
