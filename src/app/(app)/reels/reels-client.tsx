@@ -418,26 +418,35 @@ function ReelItem({
 
       {showShare && <ShareModal reel={reel} onClose={() => setShowShare(false)} />}
 
-      {/* Delete confirmation sheet */}
+      {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="absolute inset-0 z-50 flex items-end" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="w-full bg-surface rounded-t-2xl p-4 pb-8 space-y-3" onClick={(e) => e.stopPropagation()}>
-            <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
-            <p className="text-text-primary font-bold text-center text-base">Delete this reel?</p>
-            <p className="text-text-secondary text-sm text-center">This can&apos;t be undone.</p>
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              className="w-full py-3 rounded-xl bg-red-500 text-white font-bold text-sm disabled:opacity-60"
-            >
-              {deleting ? "Deleting…" : "Delete"}
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(false)}
-              className="w-full py-3 rounded-xl bg-surface-elevated text-text-primary font-semibold text-sm"
-            >
-              Cancel
-            </button>
+        <div className="absolute inset-0 z-50 flex items-center justify-center px-6" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-sm bg-surface rounded-3xl p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="h-14 w-14 rounded-full bg-status-error/10 border border-status-error/20 flex items-center justify-center">
+                <Trash2 className="h-7 w-7 text-status-error" />
+              </div>
+              <div>
+                <p className="font-bold text-text-primary text-lg">Delete this reel?</p>
+                <p className="text-sm text-text-muted mt-1">This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3 rounded-2xl border border-border text-text-primary font-semibold text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-2xl bg-status-error text-white font-semibold text-sm disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
           </div>
         </div>
       )}
