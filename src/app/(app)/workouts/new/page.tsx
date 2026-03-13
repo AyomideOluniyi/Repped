@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, Timer, Check,
-  Search, X, Save, Play, Pause, RotateCcw
+  Search, X, Save, Play, Pause, RotateCcw, Info
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,8 +49,10 @@ export default function NewWorkoutPage() {
   const [saving, setSaving] = useState(false);
   const [startTime] = useState(Date.now());
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [todayWorkoutId, setTodayWorkoutId] = useState<string | null>(null);
+  const [todayExerciseIds, setTodayExerciseIds] = useState<Set<string>>(new Set());
 
-  // Redirect to today's workout if one already exists
+  // Check if a workout already exists today; if so, store its ID and exercise IDs
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -60,10 +62,14 @@ export default function NewWorkoutPage() {
       .then((r) => r.json())
       .then((data) => {
         const w = data.workouts?.[0];
-        if (w) router.replace(`/workouts/${w.id}`);
+        if (w) {
+          setTodayWorkoutId(w.id);
+          const ids = new Set<string>((w.sets ?? []).map((s: { exercise: { id: string } }) => s.exercise.id));
+          setTodayExerciseIds(ids);
+        }
       })
       .catch(() => {});
-  }, [router]);
+  }, []);
 
   // Track keyboard height via visualViewport so the modal stays above the keyboard
   useEffect(() => {
@@ -108,6 +114,16 @@ export default function NewWorkoutPage() {
   };
 
   const addExercise = (exercise: Exercise) => {
+    // Block if already in today's saved workout
+    if (todayExerciseIds.has(exercise.id)) {
+      toast({ title: `${exercise.name} already logged today`, variant: "error" });
+      return;
+    }
+    // Block if already added in this session
+    if (exercises.some((e) => e.exercise.id === exercise.id)) {
+      toast({ title: `${exercise.name} already added`, variant: "error" });
+      return;
+    }
     setExercises((prev) => [
       ...prev,
       {
@@ -176,14 +192,27 @@ export default function NewWorkoutPage() {
         }))
       );
 
-      const duration = Math.round((Date.now() - startTime) / 1000);
-      const res = await fetch("/api/workouts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: workoutName, duration, sets }),
-      });
-      if (!res.ok) throw new Error("Failed to save");
-      const { id: workoutId } = await res.json();
+      let workoutId: string;
+      if (todayWorkoutId) {
+        // Append to existing today's workout
+        const res = await fetch(`/api/workouts/${todayWorkoutId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sets }),
+        });
+        if (!res.ok) throw new Error("Failed to save");
+        workoutId = todayWorkoutId;
+      } else {
+        const duration = Math.round((Date.now() - startTime) / 1000);
+        const res = await fetch("/api/workouts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: workoutName, duration, sets }),
+        });
+        if (!res.ok) throw new Error("Failed to save");
+        const data = await res.json();
+        workoutId = data.id;
+      }
 
       toast({ title: "Workout saved! 💪", variant: "success" });
       await new Promise((r) => setTimeout(r, 500));
@@ -209,6 +238,14 @@ export default function NewWorkoutPage() {
           placeholder="Workout name..."
         />
       </div>
+
+      {/* Today workout banner */}
+      {todayWorkoutId && (
+        <div className="mx-4 mt-3 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-accent-green/10 border border-accent-green/20">
+          <Info className="h-4 w-4 text-accent-green shrink-0" />
+          <p className="text-xs text-accent-green font-medium">Adding to today&apos;s workout — duplicate exercises are blocked</p>
+        </div>
+      )}
 
       {/* Rest timer */}
       <AnimatePresence>
