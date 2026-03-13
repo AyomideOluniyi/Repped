@@ -11,8 +11,14 @@ export default async function WorkoutsPage() {
 
   const workouts = await prisma.workout.findMany({
     where: { userId: session.user.id },
-    include: {
-      sets: { include: { exercise: true } },
+    select: {
+      id: true, name: true, date: true, duration: true, notes: true,
+      sets: {
+        select: {
+          weight: true, reps: true,
+          exercise: { select: { name: true, muscleGroups: true } },
+        },
+      },
     },
     orderBy: { date: "desc" },
     take: 30,

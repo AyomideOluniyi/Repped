@@ -275,6 +275,7 @@ model VideoFavorite {
   video Video @relation(fields: [videoId], references: [id], onDelete: Cascade)
 
   @@unique([userId, videoId])
+  @@index([videoId])
   @@map("video_favorites")
 }
 
@@ -322,6 +323,7 @@ model Workout {
   user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   sets WorkoutSet[]
 
+  @@index([userId, date])
   @@map("workouts")
 }
 
@@ -345,6 +347,7 @@ model WorkoutSet {
   workout  Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   exercise Exercise @relation(fields: [exerciseId], references: [id])
 
+  @@index([workoutId])
   @@map("workout_sets")
 }
 
@@ -379,6 +382,7 @@ model PersonalRecord {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   exercise Exercise @relation(fields: [exerciseId], references: [id])
 
+  @@index([userId, exerciseId])
   @@map("personal_records")
 }
 
@@ -478,6 +482,7 @@ model Message {
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       User         @relation("SentMessages", fields: [senderId], references: [id])
 
+  @@index([conversationId, createdAt])
   @@map("messages")
 }
 
@@ -499,6 +504,8 @@ model Post {
   likes    PostLike[]
   comments PostComment[]
 
+  @@index([userId])
+  @@index([createdAt])
   @@map("posts")
 }
 
@@ -512,6 +519,7 @@ model PostLike {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+  @@index([postId])
   @@map("post_likes")
 }
 
@@ -525,6 +533,7 @@ model PostComment {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
+  @@index([postId])
   @@map("post_comments")
 }
 
@@ -538,6 +547,7 @@ model Follow {
   following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
+  @@index([followingId])
   @@map("follows")
 }
 
@@ -706,5 +716,6 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, readAt])
   @@map("notifications")
 }

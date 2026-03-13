@@ -19,20 +19,28 @@ export async function GET(request: Request) {
   const limit = parseInt(searchParams.get("limit") ?? "20");
   const offset = parseInt(searchParams.get("offset") ?? "0");
 
-  const posts = await prisma.post.findMany({
-    where: { isPublic: true },
-    include: {
-      user: { select: { id: true, name: true, avatar: true, username: true } },
-      likes: { select: { userId: true } },
-      comments: { select: { id: true } },
-      _count: { select: { likes: true, comments: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-    skip: offset,
-  });
+  const [posts, myLikes] = await Promise.all([
+    prisma.post.findMany({
+      where: { isPublic: true },
+      select: {
+        id: true, content: true, mediaUrls: true, createdAt: true,
+        user: { select: { id: true, name: true, avatar: true, username: true } },
+        _count: { select: { likes: true, comments: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.postLike.findMany({
+      where: { userId: session.user.id },
+      select: { postId: true },
+    }),
+  ]);
 
-  return NextResponse.json(posts);
+  const likedSet = new Set(myLikes.map((l) => l.postId));
+  return NextResponse.json(
+    posts.map((p) => ({ ...p, likes: likedSet.has(p.id) ? [{ userId: session.user.id }] : [] }))
+  );
 }
 
 export async function POST(request: Request) {

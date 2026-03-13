@@ -11,13 +11,16 @@ export default async function MessagesPage() {
 
   const conversations = await prisma.userConversation.findMany({
     where: { userId: session.user.id },
-    include: {
+    select: {
+      id: true,
       conversation: {
-        include: {
+        select: {
+          id: true, type: true, name: true, updatedAt: true,
           participants: {
-            include: { user: { select: { id: true, name: true, avatar: true } } },
+            select: { user: { select: { id: true, name: true, avatar: true } } },
           },
           messages: {
+            select: { content: true, createdAt: true, senderId: true },
             orderBy: { createdAt: "desc" },
             take: 1,
           },
