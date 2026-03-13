@@ -134,43 +134,71 @@ export async function POST(request: Request) {
       }).catch(() => {});
     }
 
-    // Check for PRs
+    // Check for genuine PRs — silent baseline on first log, only notify on real improvements
     if (data.sets) {
       for (const set of data.sets) {
         if (set.weight && set.reps) {
           const existingPR = await prisma.personalRecord.findFirst({
-            where: {
-              userId: session.user.id,
-              exerciseId: set.exerciseId,
-            },
+            where: { userId: session.user.id, exerciseId: set.exerciseId },
             orderBy: { weight: "desc" },
           });
-
-          if (!existingPR || set.weight > existingPR.weight) {
-            const [newPR] = await Promise.all([
-              prisma.personalRecord.create({
-                data: {
-                  userId: session.user.id,
-                  exerciseId: set.exerciseId,
-                  weight: set.weight,
-                  reps: set.reps,
-                  workoutId: workout.id,
-                },
-                include: { exercise: true },
-              }),
-            ]);
-            // Fire PR notification
+          if (!existingPR) {
+            // First time logging this exercise — store silently as baseline
+            await prisma.personalRecord.create({
+              data: { userId: session.user.id, exerciseId: set.exerciseId, weight: set.weight, reps: set.reps, workoutId: workout.id },
+            }).catch(() => {});
+          } else if (set.weight > existingPR.weight) {
+            // Genuine weight PR
+            const ex = await prisma.exercise.findUnique({ where: { id: set.exerciseId }, select: { name: true } });
+            await prisma.personalRecord.create({
+              data: { userId: session.user.id, exerciseId: set.exerciseId, weight: set.weight, reps: set.reps, workoutId: workout.id },
+            }).catch(() => {});
             await prisma.notification.create({
               data: {
-                userId: session.user.id,
-                type: "PR_CELEBRATION",
-                title: `New personal record! 🏆`,
-                body: `${newPR.exercise.name}: ${set.weight}kg × ${set.reps} reps`,
+                userId: session.user.id, type: "PR_CELEBRATION", title: `New PR! 🏆`,
+                body: `${ex?.name ?? "Exercise"}: ${set.weight}kg × ${set.reps} reps (was ${existingPR.weight}kg)`,
+                data: { exerciseId: set.exerciseId, weight: set.weight, reps: set.reps },
+              },
+            }).catch(() => {});
+          } else if (set.weight === existingPR.weight && set.reps > existingPR.reps) {
+            // Same weight, more reps
+            const ex = await prisma.exercise.findUnique({ where: { id: set.exerciseId }, select: { name: true } });
+            await prisma.personalRecord.create({
+              data: { userId: session.user.id, exerciseId: set.exerciseId, weight: set.weight, reps: set.reps, workoutId: workout.id },
+            }).catch(() => {});
+            await prisma.notification.create({
+              data: {
+                userId: session.user.id, type: "PR_CELEBRATION", title: `Rep record! 💪`,
+                body: `${ex?.name ?? "Exercise"}: ${set.reps} reps at ${set.weight}kg (was ${existingPR.reps})`,
                 data: { exerciseId: set.exerciseId, weight: set.weight, reps: set.reps },
               },
             }).catch(() => {});
           }
         }
+      }
+    }
+
+    // Streak check
+    if (workoutCount > 1) {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const recent = await prisma.workout.findMany({
+        where: { userId: session.user.id, id: { not: workout.id }, date: { gte: new Date(today.getTime() - 31 * 86400000) } },
+        select: { date: true },
+      });
+      const daySet = new Set(recent.map((w) => { const d = new Date(w.date); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }));
+      let streak = 1;
+      const check = new Date(today); check.setDate(check.getDate() - 1);
+      while (daySet.has(check.toISOString().slice(0,10)) && streak <= 30) { streak++; check.setDate(check.getDate() - 1); }
+      const streakMessages: Record<number, string> = {
+        3: "3 days in a row! You're building a habit 🔥",
+        7: "7-day streak! One full week of training 💪",
+        14: "14 days straight! Two weeks of consistency 🏆",
+        30: "30 days! You're an absolute machine 👑",
+      };
+      if (streakMessages[streak]) {
+        await prisma.notification.create({
+          data: { userId: session.user.id, type: "STREAK_WARNING", title: `${streak}-day streak!`, body: streakMessages[streak], data: { streak, workoutId: workout.id } },
+        }).catch(() => {});
       }
     }
 

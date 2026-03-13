@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { motion } from "framer-motion";
-import { Bell, Heart, Trophy, Users, Dumbbell, MessageCircle, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Bell, Heart, Trophy, Users, Dumbbell, MessageCircle, Flame, X } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 
 type NotificationType =
@@ -25,12 +25,12 @@ const TYPE_CONFIG: Record<NotificationType, { icon: React.ElementType; iconBg: s
   PR_CELEBRATION:   { icon: Trophy,         iconBg: "bg-accent-green/10",       iconColor: "text-accent-green" },
   FOLLOW:           { icon: Users,          iconBg: "bg-blue-500/10",           iconColor: "text-blue-500" },
   WORKOUT_REMINDER: { icon: Dumbbell,       iconBg: "bg-accent-orange/10",      iconColor: "text-accent-orange" },
-  STREAK_WARNING:   { icon: Zap,            iconBg: "bg-yellow-500/10",         iconColor: "text-yellow-500" },
+  STREAK_WARNING:   { icon: Flame,          iconBg: "bg-orange-500/10",         iconColor: "text-orange-500" },
   MESSAGE:          { icon: MessageCircle,  iconBg: "bg-purple-500/10",         iconColor: "text-purple-500" },
   POST_COMMENT:     { icon: MessageCircle,  iconBg: "bg-purple-500/10",         iconColor: "text-purple-500" },
   CHALLENGE_UPDATE: { icon: Trophy,         iconBg: "bg-accent-orange/10",      iconColor: "text-accent-orange" },
   BUDDY_REQUEST:    { icon: Users,          iconBg: "bg-blue-500/10",           iconColor: "text-blue-500" },
-  COACH_FEEDBACK:   { icon: Zap,            iconBg: "bg-accent-green/10",       iconColor: "text-accent-green" },
+  COACH_FEEDBACK:   { icon: Flame,          iconBg: "bg-accent-green/10",       iconColor: "text-accent-green" },
 };
 
 export default function NotificationsPage() {
@@ -47,9 +47,7 @@ export default function NotificationsPage() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  useEffect(() => { fetchNotifications(); }, [fetchNotifications]);
 
   const markAllRead = async () => {
     await fetch("/api/notifications", { method: "PATCH" });
@@ -59,6 +57,12 @@ export default function NotificationsPage() {
   const markRead = async (id: string) => {
     await fetch(`/api/notifications/${id}`, { method: "PATCH" });
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, readAt: new Date().toISOString() } : n));
+  };
+
+  const deleteNotification = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await fetch(`/api/notifications/${id}`, { method: "DELETE" }).catch(() => {});
   };
 
   const unread = notifications.filter((n) => !n.readAt);
@@ -87,7 +91,7 @@ export default function NotificationsPage() {
         </div>
         <h2 className="text-lg font-bold text-text-primary mb-1">You&apos;re all caught up</h2>
         <p className="text-sm text-text-muted max-w-xs">
-          When someone likes your video, follows you, or you hit a new PR — you&apos;ll see it here.
+          When someone likes your post, follows you, or you hit a new PR — you&apos;ll see it here.
         </p>
       </div>
     );
@@ -107,44 +111,55 @@ export default function NotificationsPage() {
       )}
 
       <div className="divide-y divide-border/60">
-        {notifications.map((n, i) => {
-          const config = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.WORKOUT_REMINDER;
-          const Icon = config.icon;
-          const isUnread = !n.readAt;
+        <AnimatePresence initial={false}>
+          {notifications.map((n, i) => {
+            const config = TYPE_CONFIG[n.type] ?? TYPE_CONFIG.WORKOUT_REMINDER;
+            const Icon = config.icon;
+            const isUnread = !n.readAt;
 
-          return (
-            <motion.div
-              key={n.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.04 }}
-              onClick={() => isUnread && markRead(n.id)}
-              className={`flex items-start gap-3 px-4 py-4 transition-colors cursor-pointer ${
-                isUnread ? "bg-accent-green/[0.03] hover:bg-accent-green/[0.06]" : "hover:bg-surface-elevated"
-              }`}
-            >
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${config.iconBg}`}>
-                {n.imageUrl ? (
-                  <img src={n.imageUrl} alt="" className="h-10 w-10 rounded-2xl object-cover" />
-                ) : (
-                  <Icon className={`h-5 w-5 ${config.iconColor}`} />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-text-primary leading-snug">
-                  {n.title}
-                </p>
-                <p className="text-xs text-text-secondary mt-0.5 leading-snug line-clamp-2">
-                  {n.body}
-                </p>
-                <p className="text-2xs text-text-muted mt-1">{formatRelativeTime(new Date(n.createdAt))}</p>
-              </div>
-              {isUnread && (
-                <div className="h-2 w-2 rounded-full bg-accent-green shrink-0 mt-2" />
-              )}
-            </motion.div>
-          );
-        })}
+            return (
+              <motion.div
+                key={n.id}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 40, height: 0, paddingTop: 0, paddingBottom: 0 }}
+                transition={{ delay: i * 0.03 }}
+                onClick={() => isUnread && markRead(n.id)}
+                className={`flex items-start gap-3 px-4 py-4 transition-colors cursor-pointer group ${
+                  isUnread ? "bg-accent-green/[0.03] hover:bg-accent-green/[0.06]" : "hover:bg-surface-elevated"
+                }`}
+              >
+                {/* Icon / avatar */}
+                <div className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${config.iconBg}`}>
+                  {n.imageUrl ? (
+                    <img src={n.imageUrl} alt="" className="h-10 w-10 rounded-2xl object-cover" />
+                  ) : (
+                    <Icon className={`h-5 w-5 ${config.iconColor}`} />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-text-primary leading-snug">{n.title}</p>
+                  <p className="text-xs text-text-secondary mt-0.5 leading-snug line-clamp-2">{n.body}</p>
+                  <p className="text-2xs text-text-muted mt-1">{formatRelativeTime(new Date(n.createdAt))}</p>
+                </div>
+
+                {/* Right: unread dot + delete */}
+                <div className="flex items-center gap-2 shrink-0 mt-1">
+                  {isUnread && <div className="h-2 w-2 rounded-full bg-accent-green" />}
+                  <button
+                    onClick={(e) => deleteNotification(e, n.id)}
+                    className="h-6 w-6 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-elevated transition-all opacity-0 group-hover:opacity-100"
+                    aria-label="Delete notification"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </div>
   );

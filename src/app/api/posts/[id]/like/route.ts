@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(
-  request: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
@@ -23,9 +23,21 @@ export async function POST(
     });
     return NextResponse.json({ liked: false });
   } else {
-    await prisma.postLike.create({
-      data: { userId: session.user.id, postId: id },
-    });
+    await prisma.postLike.create({ data: { userId: session.user.id, postId: id } });
+    // Notify post owner (skip self-likes)
+    const post = await prisma.post.findUnique({ where: { id }, select: { userId: true, content: true } });
+    if (post && post.userId !== session.user.id) {
+      await prisma.notification.create({
+        data: {
+          userId: post.userId,
+          type: "POST_LIKE",
+          title: `${session.user.name ?? "Someone"} liked your post`,
+          body: post.content.slice(0, 80),
+          imageUrl: session.user.image ?? null,
+          data: { postId: id, actorId: session.user.id },
+        },
+      }).catch(() => {});
+    }
     return NextResponse.json({ liked: true });
   }
 }
