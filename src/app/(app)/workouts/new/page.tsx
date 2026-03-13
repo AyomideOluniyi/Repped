@@ -243,7 +243,7 @@ export default function NewWorkoutPage() {
       {todayWorkoutId && (
         <div className="mx-4 mt-3 flex items-center gap-2 px-3 py-2.5 rounded-xl bg-accent-green/10 border border-accent-green/20">
           <Info className="h-4 w-4 text-accent-green shrink-0" />
-          <p className="text-xs text-accent-green font-medium">Adding to today&apos;s workout — duplicate exercises are blocked</p>
+          <p className="text-xs text-accent-green font-medium">You worked out today — new exercises will be added to it. Repeats aren&apos;t allowed.</p>
         </div>
       )}
 
