@@ -64,7 +64,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           <ToastPrimitive.Root
             key={t.id}
             className={cn(toastVariants({ variant: t.variant }))}
-            duration={t.duration ?? 4000}
+            duration={t.duration ?? 1500}
             onOpenChange={(open) => !open && removeToast(t.id)}
             defaultOpen
           >
@@ -89,7 +89,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             </ToastPrimitive.Close>
           </ToastPrimitive.Root>
         ))}
-        <ToastPrimitive.Viewport className="fixed top-1/2 left-4 right-4 -translate-y-1/2 z-50 flex flex-col gap-2 max-w-sm mx-auto pointer-events-none" />
+        <ToastPrimitive.Viewport className="fixed top-[3.75rem] left-4 right-4 z-50 flex flex-col gap-2 max-w-sm mx-auto pointer-events-none" />
       </ToastPrimitive.Provider>
     </ToastContext.Provider>
   );
