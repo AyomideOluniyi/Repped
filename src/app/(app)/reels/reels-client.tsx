@@ -206,6 +206,8 @@ function ReelItem({
   const [showShare, setShowShare] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [buffering, setBuffering] = useState(true);
+  const [bufferProgress, setBufferProgress] = useState(0);
   const lastTap = useRef(0);
   const viewTracked = useRef(false);
   const isOwnReel = reel.user.id === currentUserId;
@@ -283,8 +285,16 @@ function ReelItem({
         loop
         playsInline
         preload={isActive || shouldPreload ? "auto" : "none"}
-        onPlay={() => setPlaying(true)}
+        onPlay={() => { setPlaying(true); setBuffering(false); }}
         onPause={() => setPlaying(false)}
+        onWaiting={() => setBuffering(true)}
+        onPlaying={() => setBuffering(false)}
+        onProgress={(e) => {
+          const video = e.currentTarget;
+          if (video.duration && video.buffered.length > 0) {
+            setBufferProgress(video.buffered.end(video.buffered.length - 1) / video.duration);
+          }
+        }}
         onClick={handleDoubleTap}
       />
 
@@ -295,8 +305,25 @@ function ReelItem({
         </div>
       )}
 
+      {/* Buffering spinner — shown while waiting for data */}
+      {buffering && isActive && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="h-12 w-12 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+        </div>
+      )}
+
+      {/* Buffer progress bar — thin line at top showing how much is loaded */}
+      {isActive && bufferProgress > 0 && bufferProgress < 1 && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/10 pointer-events-none">
+          <div
+            className="h-full bg-white/50 transition-all duration-300"
+            style={{ width: `${bufferProgress * 100}%` }}
+          />
+        </div>
+      )}
+
       {/* Paused indicator */}
-      {!playing && isActive && (
+      {!playing && !buffering && isActive && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="h-16 w-16 rounded-full bg-black/40 flex items-center justify-center">
             <Play className="h-8 w-8 text-white fill-white ml-1" />

@@ -69,6 +69,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             __html: `try{var t=localStorage.getItem('rp-theme')||'dark';document.documentElement.className=t;}catch(e){}`,
           }}
         />
+        {/* Preconnect to CDNs so the first video/image request doesn't wait for DNS + TLS */}
+        <link rel="preconnect" href="https://utfs.io" />
+        <link rel="preconnect" href="https://uploadthing.com" />
         <link rel="preconnect" href="https://api.fontshare.com" />
         <link
           href="https://api.fontshare.com/v2/css?f[]=satoshi@700,800,900&f[]=dm-sans@400,500,600&display=swap"

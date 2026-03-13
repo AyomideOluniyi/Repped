@@ -33,8 +33,8 @@ export default function VideoUploadPage() {
       toast({ title: "Please select a video file", variant: "error" });
       return;
     }
-    if (f.size > 100 * 1024 * 1024) {
-      toast({ title: "File too large (max 100MB)", variant: "error" });
+    if (f.size > 512 * 1024 * 1024) {
+      toast({ title: "File too large (max 512MB)", variant: "error" });
       return;
     }
     setFile(f);
@@ -97,7 +97,10 @@ export default function VideoUploadPage() {
             <Film className="h-8 w-8 text-accent-green" />
             <div className="text-left">
               <p className="font-semibold text-text-primary">{file.name}</p>
-              <p className="text-sm text-text-muted">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+              <p className={`text-sm font-medium ${file.size > 100 * 1024 * 1024 ? "text-amber-400" : "text-text-muted"}`}>
+                {(file.size / 1024 / 1024).toFixed(1)} MB
+                {file.size > 100 * 1024 * 1024 && " · Large file, may load slowly"}
+              </p>
             </div>
             <button onClick={(e) => { e.stopPropagation(); setFile(null); setProgress(0); }}>
               <X className="h-5 w-5 text-text-muted hover:text-status-error transition-colors" />
@@ -107,7 +110,8 @@ export default function VideoUploadPage() {
           <>
             <Upload className="h-10 w-10 text-text-muted mx-auto mb-3" />
             <p className="font-semibold text-text-primary">Tap to select video</p>
-            <p className="text-sm text-text-muted mt-1">MP4 or MOV, max 100MB</p>
+            <p className="text-sm text-text-muted mt-1">MP4 or MOV · Max 512MB</p>
+            <p className="text-xs text-text-muted mt-1">Keep under 100MB for fastest playback</p>
           </>
         )}
       </div>
