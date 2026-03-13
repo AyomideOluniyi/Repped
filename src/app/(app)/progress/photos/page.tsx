@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Camera, Upload } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Camera, Upload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
@@ -16,6 +16,7 @@ export default function ProgressPhotosPage() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [photoType, setPhotoType] = useState<"FRONT" | "SIDE" | "BACK">("FRONT");
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const { startUpload } = useUploadThing("imageUploader");
 
@@ -48,6 +49,15 @@ export default function ProgressPhotosPage() {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    setPhotos((prev) => prev.filter((p) => p.id !== id));
+    await fetch(`/api/progress/photos/${id}`, { method: "DELETE" }).catch(() => {
+      toast({ title: "Failed to delete photo", variant: "error" });
+    });
+    setDeleting(null);
   };
 
   const filtered = photos.filter((p) => p.type === photoType);
@@ -93,21 +103,31 @@ export default function ProgressPhotosPage() {
         </Card>
       ) : (
         <div className="grid grid-cols-3 gap-2">
-          {filtered.map((photo) => (
-            <motion.div
-              key={photo.id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="aspect-[3/4] rounded-xl overflow-hidden relative"
-            >
-              <img src={photo.url} alt="Progress" className="w-full h-full object-cover" />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                <p className="text-white text-xs font-semibold">
-                  {new Date(photo.takenAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                </p>
-              </div>
-            </motion.div>
-          ))}
+          <AnimatePresence>
+            {filtered.map((photo) => (
+              <motion.div
+                key={photo.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.85 }}
+                className="aspect-[3/4] rounded-xl overflow-hidden relative group"
+              >
+                <img src={photo.url} alt="Progress" className="w-full h-full object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2">
+                  <p className="text-white text-xs font-semibold">
+                    {new Date(photo.takenAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "2-digit" })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDelete(photo.id)}
+                  disabled={deleting === photo.id}
+                  className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white transition-opacity"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>
