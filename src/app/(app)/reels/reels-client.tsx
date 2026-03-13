@@ -15,6 +15,7 @@ interface Reel {
   muscleGroups: string[];
   views: number;
   likes: number;
+  comments: number;
   isLiked: boolean;
   user: { id: string; name: string | null; avatar: string | null; username: string | null };
 }
@@ -200,15 +201,29 @@ function ReelItem({
   const [following, setFollowing] = useState(initialFollowing);
   const [showShare, setShowShare] = useState(false);
   const lastTap = useRef(0);
+  const viewTracked = useRef(false);
   const isOwnReel = reel.user.id === currentUserId;
 
-  // Auto-play / pause
+  // Auto-play / pause + unique view tracking
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (isActive) video.play().catch(() => {});
-    else { video.pause(); video.currentTime = 0; }
-  }, [isActive]);
+    if (isActive) {
+      video.play().catch(() => {});
+      // Count one view per session per reel using sessionStorage
+      if (!viewTracked.current) {
+        const key = `viewed_${reel.id}`;
+        if (!sessionStorage.getItem(key)) {
+          sessionStorage.setItem(key, "1");
+          fetch(`/api/videos/${reel.id}/view`, { method: "POST" }).catch(() => {});
+        }
+        viewTracked.current = true;
+      }
+    } else {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }, [isActive, reel.id]);
 
   // Mute — React's `muted` prop is unreliable; set it imperatively via ref
   useEffect(() => {
@@ -345,7 +360,10 @@ function ReelItem({
             <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
               <MessageCircle className="h-6 w-6 text-white" />
             </div>
-            <span className="text-white text-xs font-semibold drop-shadow-lg">Comment</span>
+            {reel.comments > 0
+              ? <span className="text-white text-xs font-semibold drop-shadow-lg">{formatCount(reel.comments)}</span>
+              : <span className="text-white text-xs font-semibold drop-shadow-lg">Comment</span>
+            }
           </Link>
 
           {/* Share */}
