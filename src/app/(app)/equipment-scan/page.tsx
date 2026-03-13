@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, Upload, Dumbbell, AlertCircle, ChevronRight, RotateCcw } from "lucide-react";
+import { Camera, Upload, Dumbbell, AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,7 @@ export default function EquipmentScanPage() {
           body: JSON.stringify({ imageBase64: base64 }),
         });
         const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error ?? "Failed");
         setResult(data);
       } catch {
         toast({ title: "Identification failed", variant: "error" });
