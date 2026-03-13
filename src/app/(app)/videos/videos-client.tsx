@@ -2,11 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Play, Upload, Search, Lock, Globe, Eye } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Play, Upload, Search, Lock, Globe, Eye, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/toast";
 
 const MUSCLE_GROUPS = [
   "All", "CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS",
@@ -26,42 +27,40 @@ interface Video {
   user: { id: string; name: string | null; avatar: string | null };
 }
 
-function VideoThumbnail({ src, title }: { src: string; title: string }) {
+// Renders the video element paused at 1s — avoids CORS canvas issues
+function VideoThumbnail({ src }: { src: string }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [poster, setPoster] = useState<string | null>(null);
-  const captured = useRef(false);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     const onMetadata = () => { video.currentTime = 1; };
-    const onSeeked = () => {
-      if (captured.current) return;
-      try {
-        const canvas = document.createElement("canvas");
-        const w = Math.min(video.videoWidth, 480);
-        const h = Math.round(w * video.videoHeight / video.videoWidth);
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d")?.drawImage(video, 0, 0, w, h);
-        const url = canvas.toDataURL("image/jpeg", 0.7);
-        if (url !== "data:,") { setPoster(url); captured.current = true; }
-      } catch {}
-    };
+    const onSeeked = () => setReady(true);
     video.addEventListener("loadedmetadata", onMetadata);
     video.addEventListener("seeked", onSeeked);
-    return () => { video.removeEventListener("loadedmetadata", onMetadata); video.removeEventListener("seeked", onSeeked); };
+    return () => {
+      video.removeEventListener("loadedmetadata", onMetadata);
+      video.removeEventListener("seeked", onSeeked);
+    };
   }, []);
 
   return (
-    <>
-      <video ref={videoRef} src={src} preload="metadata" className="hidden" muted playsInline />
-      {poster
-        ? <img src={poster} alt={title} className="w-full h-full object-cover" />
-        : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-surface to-surface-elevated">
-            <Play className="h-8 w-8 text-text-muted" />
-          </div>
-      }
-    </>
+    <div className="w-full h-full relative">
+      <video
+        ref={videoRef}
+        src={src}
+        preload="metadata"
+        muted
+        playsInline
+        className={`w-full h-full object-cover transition-opacity duration-300 ${ready ? "opacity-100" : "opacity-0"}`}
+      />
+      {!ready && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-surface to-surface-elevated">
+          <div className="h-5 w-5 rounded-full border-2 border-text-muted border-t-transparent animate-spin" />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -71,15 +70,31 @@ function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-export function VideosClient({ videos, currentUserId }: { videos: Video[]; currentUserId: string }) {
+export function VideosClient({ videos: initialVideos, currentUserId }: { videos: Video[]; currentUserId: string }) {
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [videos, setVideos] = useState(initialVideos);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const filtered = videos.filter((v) => {
     const matchesSearch = v.title.toLowerCase().includes(search.toLowerCase());
     const matchesMuscle = activeFilter === "All" || v.muscleGroups.includes(activeFilter);
     return matchesSearch && matchesMuscle;
   });
+
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeleting(id);
+    setVideos((prev) => prev.filter((v) => v.id !== id));
+    const res = await fetch(`/api/videos/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      toast({ title: "Failed to delete video", variant: "error" });
+      setVideos(initialVideos);
+    }
+    setDeleting(null);
+  };
 
   return (
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
@@ -126,58 +141,71 @@ export function VideosClient({ videos, currentUserId }: { videos: Video[]; curre
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3">
-          {filtered.map((video, i) => (
-            <motion.div
-              key={video.id}
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.04 }}
-            >
-              <Link href={`/videos/${video.id}`}>
-                <div className="rounded-2xl overflow-hidden border border-border bg-surface-elevated hover:border-border-strong transition-colors group">
-                  {/* Thumbnail */}
-                  <div className="relative aspect-video bg-surface">
-                    {video.thumbnailUrl
-                      ? <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
-                      : <VideoThumbnail src={video.url} title={video.title} />
-                    }
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                      <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <Play className="h-5 w-5 text-white fill-white ml-0.5" />
-                      </div>
-                    </div>
-                    {video.duration && (
-                      <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-medium px-1.5 py-0.5 rounded-md">
-                        {formatDuration(video.duration)}
-                      </div>
-                    )}
-                    <div className="absolute top-2 right-2">
-                      {video.isPublic
-                        ? <Globe className="h-3.5 w-3.5 text-white/70" />
-                        : <Lock className="h-3.5 w-3.5 text-white/70" />
+          <AnimatePresence>
+            {filtered.map((video, i) => (
+              <motion.div
+                key={video.id}
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ delay: i * 0.04 }}
+              >
+                <Link href={`/videos/${video.id}`}>
+                  <div className="rounded-2xl overflow-hidden border border-border bg-surface-elevated hover:border-border-strong transition-colors group">
+                    {/* Thumbnail */}
+                    <div className="relative aspect-video bg-surface">
+                      {video.thumbnailUrl
+                        ? <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover" />
+                        : <VideoThumbnail src={video.url} />
                       }
-                    </div>
-                  </div>
-                  {/* Info */}
-                  <div className="p-2.5">
-                    <p className="font-semibold text-text-primary text-sm line-clamp-2 leading-tight">{video.title}</p>
-                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
-                      {video.muscleGroups.slice(0, 1).map((m) => (
-                        <Badge key={m} variant="secondary" className="text-2xs">
-                          {m.replace(/_/g, " ")}
-                        </Badge>
-                      ))}
-                      {video.views > 0 && (
-                        <span className="text-2xs text-text-muted flex items-center gap-0.5 ml-auto">
-                          <Eye className="h-2.5 w-2.5" /> {video.views}
-                        </span>
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                        <div className="h-10 w-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                          <Play className="h-5 w-5 text-white fill-white ml-0.5" />
+                        </div>
+                      </div>
+                      {video.duration && (
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-medium px-1.5 py-0.5 rounded-md">
+                          {formatDuration(video.duration)}
+                        </div>
                       )}
+                      {/* Top row: visibility + delete (own videos only) */}
+                      <div className="absolute top-2 left-2 right-2 flex items-center justify-between">
+                        {video.isPublic
+                          ? <Globe className="h-3.5 w-3.5 text-white/70" />
+                          : <Lock className="h-3.5 w-3.5 text-white/70" />
+                        }
+                        {video.user.id === currentUserId && (
+                          <button
+                            onClick={(e) => handleDelete(e, video.id)}
+                            disabled={deleting === video.id}
+                            className="h-6 w-6 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center text-white/80 hover:text-white transition-colors"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {/* Info */}
+                    <div className="p-2.5">
+                      <p className="font-semibold text-text-primary text-sm line-clamp-2 leading-tight">{video.title}</p>
+                      <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        {video.muscleGroups.slice(0, 1).map((m) => (
+                          <Badge key={m} variant="secondary" className="text-2xs">
+                            {m.replace(/_/g, " ")}
+                          </Badge>
+                        ))}
+                        {video.views > 0 && (
+                          <span className="text-2xs text-text-muted flex items-center gap-0.5 ml-auto">
+                            <Eye className="h-2.5 w-2.5" /> {video.views}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                </Link>
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>

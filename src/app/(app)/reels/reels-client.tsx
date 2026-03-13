@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check, MessageCircle } from "lucide-react";
+import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check, MessageCircle, Trash2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -185,6 +185,7 @@ function ReelItem({
   onToggleMute,
   currentUserId,
   initialFollowing,
+  onDelete,
 }: {
   reel: Reel;
   isActive: boolean;
@@ -192,6 +193,7 @@ function ReelItem({
   onToggleMute: () => void;
   currentUserId: string;
   initialFollowing: boolean;
+  onDelete: (id: string) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
@@ -205,6 +207,11 @@ function ReelItem({
   const viewTracked = useRef(false);
   const didCapture = useRef(false);
   const isOwnReel = reel.user.id === currentUserId;
+
+  const handleDelete = async () => {
+    await fetch(`/api/videos/${reel.id}`, { method: "DELETE" }).catch(() => {});
+    onDelete(reel.id);
+  };
 
   const handleLoadedMetadata = () => {
     const video = videoRef.current;
@@ -418,6 +425,16 @@ function ReelItem({
             </div>
             <span className="text-white text-xs font-semibold drop-shadow-lg">Post</span>
           </Link>
+
+          {/* Delete — own reels only */}
+          {isOwnReel && (
+            <button className="flex flex-col items-center gap-1" onClick={handleDelete}>
+              <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
+                <Trash2 className="h-5 w-5 text-red-400" />
+              </div>
+              <span className="text-white text-xs font-semibold drop-shadow-lg">Delete</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -512,6 +529,7 @@ export function ReelsClient({
             onToggleMute={() => setMuted((m) => !m)}
             currentUserId={currentUserId}
             initialFollowing={followingSet.has(reel.user.id)}
+            onDelete={(id) => setReels((prev) => prev.filter((r) => r.id !== id))}
           />
         </div>
       ))}
