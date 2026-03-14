@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 const FEATURES = [
   { icon: Dumbbell, title: "Smart Workout Tracker", desc: "Log workouts with lightning speed. Auto-detect PRs, track volume, and visualize your progression over time.", color: "text-accent-green", bg: "bg-accent-green/10", border: "group-hover:border-accent-green/30" },
-  { icon: Camera, title: "AI Meal Scanner", desc: "Point your camera at any meal. Get instant calorie counts, macros, and health scores powered by GPT-4.", color: "text-accent-orange", bg: "bg-accent-orange/10", border: "group-hover:border-accent-orange/30" },
+  { icon: Camera, title: "AI Meal Scanner", desc: "Point your camera at any meal. Get instant calorie counts, macros, and health scores — all AI-powered.", color: "text-accent-orange", bg: "bg-accent-orange/10", border: "group-hover:border-accent-orange/30" },
   { icon: Brain, title: "Equipment Identifier", desc: "New to a gym machine? AI identifies equipment and shows you exactly how to use it safely.", color: "text-status-info", bg: "bg-status-info/10", border: "group-hover:border-status-info/30" },
   { icon: Zap, title: "AI Workout Generator", desc: "Tell the AI your goals, available equipment, and schedule. Get a complete weekly plan in seconds.", color: "text-status-warning", bg: "bg-status-warning/10", border: "group-hover:border-status-warning/30" },
   { icon: Users, title: "Community and Challenges", desc: "Share PRs, join 30-day challenges, find gym buddies near you, and level up together.", color: "text-accent-green", bg: "bg-accent-green/10", border: "group-hover:border-accent-green/30" },
