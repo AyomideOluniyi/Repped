@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check, MessageCircle, Trash2 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
@@ -74,11 +75,12 @@ function ShareModal({ reel, onClose }: { reel: Reel; onClose: () => void }) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-end" onClick={onClose}>
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/60" />
       <div
-        className="relative w-full bg-surface rounded-t-3xl max-h-[70dvh] flex flex-col"
+        className="relative w-full bg-surface rounded-t-3xl flex flex-col"
+        style={{ maxHeight: "75dvh", paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="h-1 w-10 rounded-full bg-border-strong mx-auto mt-3" />
@@ -150,7 +152,7 @@ function ShareModal({ reel, onClose }: { reel: Reel; onClose: () => void }) {
         </div>
 
         {/* Send button */}
-        <div className="px-4 py-3 border-t border-border" style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom, 0px))" }}>
+        <div className="px-4 py-3 border-t border-border">
           <button
             onClick={handleSend}
             disabled={selected.size === 0 || sending || sent}
@@ -173,7 +175,8 @@ function ShareModal({ reel, onClose }: { reel: Reel; onClose: () => void }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
