@@ -20,7 +20,8 @@ interface EquipmentResult {
 
 export default function EquipmentScanPage() {
   const { toast } = useToast();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<EquipmentResult | null>(null);
@@ -54,13 +55,21 @@ export default function EquipmentScanPage() {
 
   return (
     <div className="p-4 space-y-4 max-w-lg mx-auto">
+      {/* Two separate inputs: one for camera, one for gallery */}
       <input
-        ref={fileRef}
+        ref={cameraRef}
         type="file"
         accept="image/*"
         capture="environment"
         className="hidden"
-        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImage(f); }}
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleImage(f); e.target.value = ""; } }}
+      />
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) { handleImage(f); e.target.value = ""; } }}
       />
 
       {!preview ? (
@@ -71,18 +80,13 @@ export default function EquipmentScanPage() {
             Take a photo of any machine or equipment and AI will tell you what it is and how to use it
           </p>
           <div className="flex gap-3 justify-center">
-            <Button leftIcon={<Camera className="h-4 w-4" />} onClick={() => fileRef.current?.click()}>
+            <Button leftIcon={<Camera className="h-4 w-4" />} onClick={() => cameraRef.current?.click()}>
               Take Photo
             </Button>
             <Button
               variant="secondary"
               leftIcon={<Upload className="h-4 w-4" />}
-              onClick={() => {
-                if (fileRef.current) {
-                  fileRef.current.removeAttribute("capture");
-                  fileRef.current.click();
-                }
-              }}
+              onClick={() => galleryRef.current?.click()}
             >
               Upload
             </Button>

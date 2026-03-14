@@ -27,14 +27,32 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-  const scrollToBottom = useCallback(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Lift input above iOS keyboard using visualViewport
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kb = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardOffset(Math.max(0, kb));
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
   }, []);
 
+  const scrollToBottom = useCallback((instant = false) => {
+    bottomRef.current?.scrollIntoView({ behavior: instant ? "instant" : "smooth" });
+  }, []);
+
+  useEffect(() => { scrollToBottom(true); }, []); // instant on mount
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   // Poll for new messages every 3s
@@ -55,8 +73,6 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
     if (!content || sending) return;
     setSending(true);
     setText("");
-
-    // Optimistic update
     const optimistic: Message = {
       id: `opt-${Date.now()}`,
       content,
@@ -65,7 +81,6 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
       sender: { id: currentUserId, name: "You", avatar: null },
     };
     setMessages((prev) => [...prev, optimistic]);
-
     try {
       const res = await fetch(`/api/messages/${conversationId}`, {
         method: "POST",
@@ -83,10 +98,6 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
     }
   };
 
-  const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-  };
-
   // Group messages by date
   const grouped = messages.reduce<{ date: string; msgs: Message[] }[]>((acc, msg) => {
     const date = new Date(msg.createdAt).toLocaleDateString("en-GB", { weekday: "short", month: "short", day: "numeric" });
@@ -97,10 +108,23 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
   }, []);
 
   return (
-    <div className="flex flex-col h-dvh bg-background">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-surface/80 backdrop-blur-xl shrink-0">
-        <button onClick={() => router.back()} className="text-text-muted hover:text-text-primary transition-colors p-1 -ml-1">
+    <div
+      className="flex flex-col bg-background"
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 100,
+      }}
+    >
+      {/* Header — clears iOS status bar */}
+      <div
+        className="flex items-center gap-3 px-4 pb-3 border-b border-border bg-surface/80 backdrop-blur-xl shrink-0"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
+      >
+        <button
+          onClick={() => router.back()}
+          className="text-text-muted hover:text-text-primary transition-colors p-1 -ml-1 shrink-0"
+        >
           <ArrowLeft className="h-5 w-5" />
         </button>
         <Avatar src={otherUser.avatar ?? undefined} name={otherUser.name ?? "?"} size="sm" online />
@@ -110,8 +134,8 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
         </div>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      {/* Messages — flex-1 with min-h-0 so it compresses when keyboard appears */}
+      <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 space-y-4">
         {grouped.map(({ date, msgs }) => (
           <div key={date}>
             <div className="flex items-center gap-3 mb-3">
@@ -163,14 +187,21 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] border-t border-border bg-surface/80 backdrop-blur-xl shrink-0">
-        <div className="flex items-center gap-2 bg-surface-elevated rounded-2xl border border-border px-4 py-2 focus-within:border-accent-green/50 transition-colors">
+      {/* Input bar — rises above keyboard via keyboardOffset */}
+      <div
+        className="px-4 pt-3 border-t border-border bg-surface/80 backdrop-blur-xl shrink-0"
+        style={{
+          paddingBottom: keyboardOffset > 0
+            ? `${keyboardOffset + 12}px`
+            : "calc(env(safe-area-inset-bottom) + 0.75rem)",
+        }}
+      >
+        <div className="flex items-center gap-2 bg-surface-elevated rounded-2xl border border-border px-4 py-2.5 focus-within:border-accent-green/50 transition-colors">
           <input
             ref={inputRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={handleKey}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
             placeholder="Message..."
             className="flex-1 bg-transparent text-sm text-text-primary placeholder:text-text-muted focus:outline-none"
           />
@@ -178,7 +209,7 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
             onClick={sendMessage}
             disabled={!text.trim() || sending}
             className={cn(
-              "h-8 w-8 rounded-xl flex items-center justify-center transition-all",
+              "h-8 w-8 rounded-xl flex items-center justify-center transition-all shrink-0",
               text.trim() ? "bg-accent-green text-background" : "bg-border text-text-muted"
             )}
           >

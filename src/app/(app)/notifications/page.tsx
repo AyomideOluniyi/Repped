@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, Heart, Trophy, Users, Dumbbell, MessageCircle, Flame, X } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
@@ -18,6 +19,7 @@ interface Notification {
   imageUrl: string | null;
   readAt: string | null;
   createdAt: string;
+  data?: { actorId?: string; postId?: string; videoId?: string } | null;
 }
 
 const TYPE_CONFIG: Record<NotificationType, { icon: React.ElementType; iconBg: string; iconColor: string }> = {
@@ -34,6 +36,7 @@ const TYPE_CONFIG: Record<NotificationType, { icon: React.ElementType; iconBg: s
 };
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,7 +127,11 @@ export default function NotificationsPage() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 40, height: 0, paddingTop: 0, paddingBottom: 0 }}
                 transition={{ delay: i * 0.03 }}
-                onClick={() => isUnread && markRead(n.id)}
+                onClick={() => {
+                  if (isUnread) markRead(n.id);
+                  const actorId = (n.data as { actorId?: string } | null)?.actorId;
+                  if (actorId) router.push(`/profile/${actorId}`);
+                }}
                 className={`flex items-start gap-3 px-4 py-4 transition-colors cursor-pointer group ${
                   isUnread ? "bg-accent-green/[0.03] hover:bg-accent-green/[0.06]" : "hover:bg-surface-elevated"
                 }`}
