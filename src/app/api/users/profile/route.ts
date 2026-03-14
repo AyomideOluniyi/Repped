@@ -26,6 +26,14 @@ export async function GET() {
   return NextResponse.json(user);
 }
 
+export async function DELETE() {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  await prisma.user.delete({ where: { id: session.user.id } });
+  return NextResponse.json({ success: true });
+}
+
 export async function PATCH(request: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

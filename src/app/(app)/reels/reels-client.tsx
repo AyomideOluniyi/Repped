@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check, MessageCircle, Trash2 } from "lucide-react";
+import { Heart, Volume2, VolumeX, Play, Share2, Dumbbell, Camera, X, Send, Search, Check, MessageCircle, Trash2, Eye } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
@@ -416,6 +416,14 @@ function ReelItem({
             </div>
             <span className="text-white text-xs font-semibold drop-shadow-lg">Share</span>
           </button>
+
+          {/* Views */}
+          <div className="flex flex-col items-center gap-1">
+            <div className="h-11 w-11 rounded-full bg-black/30 flex items-center justify-center">
+              <Eye className="h-5 w-5 text-white" />
+            </div>
+            <span className="text-white text-xs font-semibold drop-shadow-lg">{formatCount(reel.views)}</span>
+          </div>
 
           {/* Mute */}
           <button

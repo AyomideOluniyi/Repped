@@ -6,7 +6,7 @@ import { signOut } from "next-auth/react";
 import { motion } from "framer-motion";
 import {
   User, Bell, Shield, Moon, LogOut, ChevronRight,
-  Smartphone, Database, HelpCircle
+  Smartphone, Database, HelpCircle, Trash2
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,20 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [signingOut, setSigningOut] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      const res = await fetch("/api/users/profile", { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      await signOut({ callbackUrl: "/" });
+    } catch {
+      toast({ title: "Failed to delete account", variant: "error" });
+      setDeleting(false);
+    }
+  };
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -119,7 +133,46 @@ export default function SettingsPage() {
         Sign Out
       </Button>
 
+      <button
+        onClick={() => setShowDeleteConfirm(true)}
+        className="w-full text-center text-xs text-status-error underline underline-offset-2 py-1"
+      >
+        Delete Account
+      </button>
+
       <p className="text-center text-xs text-text-muted">REPPED v1.0.0 · Built with ❤️ for athletes</p>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-6" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+          <div className="relative w-full max-w-sm bg-surface rounded-3xl p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex flex-col items-center text-center gap-3">
+              <div className="h-14 w-14 rounded-full bg-status-error/10 border border-status-error/20 flex items-center justify-center">
+                <Trash2 className="h-7 w-7 text-status-error" />
+              </div>
+              <div>
+                <p className="font-bold text-text-primary text-lg">Delete your account?</p>
+                <p className="text-sm text-text-muted mt-1">All your data — workouts, videos, and messages — will be permanently deleted. This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-3 rounded-2xl border border-border text-text-primary font-semibold text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-2xl bg-status-error text-white font-semibold text-sm disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
