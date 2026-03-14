@@ -26,23 +26,84 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 async function fetchGyms(lat: number, lon: number): Promise<Gym[]> {
-  const radius = 8000;
-  const query = `[out:json][timeout:25];(node["leisure"="fitness_centre"](around:${radius},${lat},${lon});way["leisure"="fitness_centre"](around:${radius},${lat},${lon});node["leisure"="sports_centre"](around:${radius},${lat},${lon});node["sport"="fitness"](around:${radius},${lat},${lon});node["amenity"="gym"](around:${radius},${lat},${lon}););out center;`;
-  const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`);
-  const data = await res.json();
+  const radius = 15000; // 15km
+  // Broad tag set — catches fitness_centre, sports_centre, sport halls, gym amenity, sport=gym/fitness, CrossFit boxes, etc.
+  const tagFilters = [
+    `node["leisure"="fitness_centre"]`,
+    `way["leisure"="fitness_centre"]`,
+    `relation["leisure"="fitness_centre"]`,
+    `node["leisure"="sports_centre"]`,
+    `way["leisure"="sports_centre"]`,
+    `node["leisure"="sports_hall"]`,
+    `way["leisure"="sports_hall"]`,
+    `node["amenity"="gym"]`,
+    `way["amenity"="gym"]`,
+    `node["sport"="fitness"]`,
+    `node["sport"="gym"]`,
+    `way["sport"="gym"]`,
+    `node["building"="gym"]`,
+  ].map((t) => `${t}(around:${radius},${lat},${lon})`).join(";");
 
-  return (data.elements ?? [])
-    .filter((el: { tags?: { name?: string }; lat?: number; center?: { lat: number; lon: number } }) => el.tags?.name && (el.lat != null || el.center != null))
-    .map((el: { id: number; lat?: number; lon?: number; center?: { lat: number; lon: number }; tags: { name?: string; "addr:street"?: string; "addr:housenumber"?: string; "addr:city"?: string } }) => {
-      const elLat = el.lat ?? el.center?.lat ?? 0;
-      const elLon = el.lon ?? el.center?.lon ?? 0;
-      const km = distanceKm(lat, lon, elLat, elLon);
-      const dist = km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+  const query = `[out:json][timeout:30];(${tagFilters};);out center;`;
+
+  // Run Overpass + Nominatim text searches in parallel
+  const [overpassRes, ...nominatimResults] = await Promise.allSettled([
+    fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`).then((r) => r.json()),
+    // Text searches for keywords that might not have the right OSM tag
+    ...["gym", "fitness", "crossfit"].map((kw) =>
+      fetch(
+        `https://nominatim.openstreetmap.org/search?q=${kw}&format=json&limit=20&bounded=1&viewbox=${lon - 0.15},${lat + 0.15},${lon + 0.15},${lat - 0.15}`,
+        { headers: { "Accept-Language": "en" } }
+      ).then((r) => r.json())
+    ),
+  ]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const makeGym = (id: string, name: string, addr: string, gLat: number, gLon: number): Gym => {
+    const km = distanceKm(lat, lon, gLat, gLon);
+    return { id, name, address: addr, distance: km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`, lat: gLat, lon: gLon };
+  };
+
+  const gyms: Gym[] = [];
+  const seen = new Set<string>();
+
+  // Overpass results
+  if (overpassRes.status === "fulfilled") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const el of (overpassRes.value.elements ?? []) as any[]) {
+      if (!el.tags?.name) continue;
+      const gLat = el.lat ?? el.center?.lat;
+      const gLon = el.lon ?? el.center?.lon;
+      if (gLat == null) continue;
+      const key = `${el.tags.name.toLowerCase()}|${gLat.toFixed(3)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
       const addr = [el.tags["addr:housenumber"], el.tags["addr:street"], el.tags["addr:city"]].filter(Boolean).join(" ") || "Address unavailable";
-      return { id: String(el.id), name: el.tags.name!, address: addr, distance: dist, lat: elLat, lon: elLon };
-    })
-    .sort((a: Gym, b: Gym) => distanceKm(lat, lon, a.lat, a.lon) - distanceKm(lat, lon, b.lat, b.lon))
-    .slice(0, 15);
+      gyms.push(makeGym(String(el.id), el.tags.name, addr, gLat, gLon));
+    }
+  }
+
+  // Nominatim results
+  for (const result of nominatimResults) {
+    if (result.status !== "fulfilled") continue;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const place of (result.value ?? []) as any[]) {
+      if (!place.display_name) continue;
+      const gLat = parseFloat(place.lat);
+      const gLon = parseFloat(place.lon);
+      if (isNaN(gLat) || distanceKm(lat, lon, gLat, gLon) > 15) continue;
+      const name = place.name || place.display_name.split(",")[0];
+      const key = `${name.toLowerCase()}|${gLat.toFixed(3)}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const addr = place.display_name.split(",").slice(1, 3).join(",").trim() || "Address unavailable";
+      gyms.push(makeGym(place.place_id, name, addr, gLat, gLon));
+    }
+  }
+
+  return gyms
+    .sort((a, b) => distanceKm(lat, lon, a.lat, a.lon) - distanceKm(lat, lon, b.lat, b.lon))
+    .slice(0, 25);
 }
 
 export default function GymFinderPage() {
@@ -144,7 +205,7 @@ export default function GymFinderPage() {
 
       {gyms.length > 0 && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-text-muted">Data from OpenStreetMap · {filtered.length} gyms found</p>
+          <p className="text-xs text-text-muted">OpenStreetMap + Nominatim · {filtered.length} gyms found</p>
           <Button variant="ghost" size="sm" onClick={getLocation}>Refresh</Button>
         </div>
       )}
