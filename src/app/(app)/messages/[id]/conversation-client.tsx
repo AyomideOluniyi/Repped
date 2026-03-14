@@ -27,19 +27,21 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [vpHeight, setVpHeight] = useState<number | null>(null);
+  const [vpTop, setVpTop] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Lift input above iOS keyboard using visualViewport
+  // Bind container to visual viewport so keyboard shrinks the container naturally
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
     const update = () => {
-      const kb = window.innerHeight - vv.height - vv.offsetTop;
-      setKeyboardOffset(Math.max(0, kb));
+      setVpHeight(vv.height);
+      setVpTop(vv.offsetTop);
     };
+    update();
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
@@ -112,7 +114,10 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
       className="flex flex-col bg-background"
       style={{
         position: "fixed",
-        inset: 0,
+        top: vpTop,
+        left: 0,
+        right: 0,
+        height: vpHeight ?? "100dvh",
         zIndex: 100,
       }}
     >
@@ -187,14 +192,9 @@ export function ConversationClient({ conversationId, currentUserId, otherUser, i
         <div ref={bottomRef} />
       </div>
 
-      {/* Input bar — rises above keyboard via keyboardOffset */}
+      {/* Input bar — sits at bottom of visual viewport (container shrinks with keyboard) */}
       <div
-        className="px-4 pt-3 border-t border-border bg-surface/80 backdrop-blur-xl shrink-0"
-        style={{
-          paddingBottom: keyboardOffset > 0
-            ? `${keyboardOffset + 12}px`
-            : "calc(env(safe-area-inset-bottom) + 0.75rem)",
-        }}
+        className="px-4 pt-3 pb-3 border-t border-border bg-surface/80 backdrop-blur-xl shrink-0"
       >
         <div className="flex items-center gap-2 bg-surface-elevated rounded-2xl border border-border px-4 py-2.5 focus-within:border-accent-green/50 transition-colors">
           <input
