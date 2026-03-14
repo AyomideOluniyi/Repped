@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const moreGroups = [
   {
@@ -59,6 +59,18 @@ const navItems = [
 export function BottomNav() {
   const pathname = usePathname();
   const [showMore, setShowMore] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  // Hide nav when keyboard opens (iOS: visualViewport shrinks)
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      setKeyboardOpen(window.innerHeight - vv.height > 100);
+    };
+    vv.addEventListener("resize", update);
+    return () => vv.removeEventListener("resize", update);
+  }, []);
 
   const isMoreActive = moreGroups.some((g) =>
     g.items.some((i) => pathname === i.href || pathname.startsWith(i.href))
@@ -66,7 +78,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
+      <nav className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-150 ${keyboardOpen ? "translate-y-full" : "translate-y-0"}`}>
         <div className="bg-background/90 backdrop-blur-2xl border-t border-border/60 shadow-[0_-4px_24px_rgba(0,0,0,0.12)]">
           <div className="flex items-center justify-around px-2 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
             {navItems.map((item) => {
