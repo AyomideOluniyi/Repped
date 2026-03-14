@@ -61,15 +61,20 @@ export function BottomNav() {
   const [showMore, setShowMore] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
 
-  // Hide nav when keyboard opens (iOS: visualViewport shrinks)
+  // Hide nav when any input/textarea is focused (keyboard opens on mobile)
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      setKeyboardOpen(window.innerHeight - vv.height > 100);
+    const onFocus = (e: FocusEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        setKeyboardOpen(true);
+      }
     };
-    vv.addEventListener("resize", update);
-    return () => vv.removeEventListener("resize", update);
+    const onBlur = () => setKeyboardOpen(false);
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onBlur);
+    return () => {
+      document.removeEventListener("focusin", onFocus);
+      document.removeEventListener("focusout", onBlur);
+    };
   }, []);
 
   const isMoreActive = moreGroups.some((g) =>
