@@ -35,17 +35,24 @@ function NewMessageModal({ onClose }: { onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<UserResult[]>([]);
   const [starting, setStarting] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    fetch("/api/buddies")
-      .then((r) => r.json())
-      .then((data) => setUsers(Array.isArray(data) ? data : []))
-      .catch(() => {});
-  }, []);
+    const trimmed = query.trim();
+    if (!trimmed) { setUsers([]); return; }
+    const timer = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/users/search?q=${encodeURIComponent(trimmed)}`);
+        const data = await res.json();
+        setUsers(Array.isArray(data) ? data : []);
+      } catch {}
+      setSearching(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
-  const filtered = users.filter((u) =>
-    (u.name ?? u.username ?? "").toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = users;
 
   const startConversation = async (userId: string) => {
     setStarting(userId);
@@ -94,10 +101,12 @@ function NewMessageModal({ onClose }: { onClose: () => void }) {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 pb-6">
-          {users.length === 0 ? (
-            <p className="text-center py-8 text-sm text-text-muted">Follow people to message them</p>
+          {searching ? (
+            <div className="flex justify-center py-8"><div className="h-5 w-5 rounded-full border-2 border-accent-green border-t-transparent animate-spin" /></div>
+          ) : !query.trim() ? (
+            <p className="text-center py-8 text-sm text-text-muted">Search by name or @username</p>
           ) : filtered.length === 0 ? (
-            <p className="text-center py-6 text-sm text-text-muted">No results</p>
+            <p className="text-center py-6 text-sm text-text-muted">No users found</p>
           ) : (
             <div className="space-y-1">
               {filtered.map((u) => (

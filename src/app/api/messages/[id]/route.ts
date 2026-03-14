@@ -36,13 +36,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { content } = await req.json();
   if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
 
-  const message = await prisma.message.create({
-    data: { conversationId: id, senderId: session.user.id, content: content.trim() },
-    include: { sender: { select: { id: true, name: true, avatar: true } } },
-  });
+  const [message, otherParticipants, sender] = await Promise.all([
+    prisma.message.create({
+      data: { conversationId: id, senderId: session.user.id, content: content.trim() },
+      include: { sender: { select: { id: true, name: true, avatar: true } } },
+    }),
+    prisma.userConversation.findMany({
+      where: { conversationId: id, userId: { not: session.user.id } },
+      select: { userId: true },
+    }),
+    prisma.user.findUnique({ where: { id: session.user.id }, select: { name: true } }),
+    prisma.conversation.update({ where: { id }, data: { updatedAt: new Date() } }),
+  ]);
 
-  // Update conversation updatedAt
-  await prisma.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
+  // Notify all other participants (fire-and-forget)
+  const senderName = sender?.name ?? "Someone";
+  prisma.notification.createMany({
+    data: otherParticipants.map((p) => ({
+      userId: p.userId,
+      type: "MESSAGE" as const,
+      title: `${senderName} sent you a message`,
+      body: content.trim().length > 80 ? content.trim().slice(0, 77) + "…" : content.trim(),
+      data: { actorId: session.user.id, conversationId: id },
+    })),
+  }).catch(() => {});
 
   return NextResponse.json(message, { status: 201 });
 }
