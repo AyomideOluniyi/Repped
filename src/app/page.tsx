@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Dumbbell, Brain, Camera, Users, Trophy, Zap, Shield, Smartphone, Play } from "lucide-react";
+import { prisma } from "@/lib/prisma";
 
 const FEATURES = [
   { icon: Dumbbell, title: "Smart Workout Tracker", desc: "Log workouts with lightning speed. Auto-detect PRs, track volume, and visualize your progression over time.", color: "text-accent-green", bg: "bg-accent-green/10", border: "group-hover:border-accent-green/30" },
@@ -10,20 +11,20 @@ const FEATURES = [
   { icon: Trophy, title: "Progress Tracking", desc: "Progress photos, body measurements, and strength standards. See exactly how far you have come.", color: "text-status-warning", bg: "bg-status-warning/10", border: "group-hover:border-status-warning/30" },
 ];
 
-const STATS = [
-  { value: "500+", label: "Exercises" },
-  { value: "AI", label: "Powered" },
-  { value: "PWA", label: "Works Offline" },
-  { value: "Free", label: "Always" },
-];
-
-const HOW_IT_WORKS = [
+const HOW_IT_WORKS = (count: number) => [
   { step: "01", title: "Sign up in seconds", desc: "Create your account with email or Google. Set your fitness goals and we will personalize the experience for you." },
-  { step: "02", title: "Log your first workout", desc: "Search our database of 500+ exercises, log your sets and reps, and let REPPED track your progress automatically." },
+  { step: "02", title: "Log your first workout", desc: `Search our database of ${count} exercises, log your sets and reps, and let REPPED track your progress automatically.` },
   { step: "03", title: "Watch yourself improve", desc: "Charts, PRs, streaks, and AI-generated insights show you exactly how far you have come and where to go next." },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const exerciseCount = await prisma.exercise.count();
+  const STATS = [
+    { value: String(exerciseCount), label: "Exercises" },
+    { value: "AI", label: "Powered" },
+    { value: "PWA", label: "Works Offline" },
+    { value: "Free", label: "Always" },
+  ];
   return (
     <div className="min-h-screen bg-background text-text-primary font-body overflow-x-hidden">
       {/* Navigation */}
@@ -157,7 +158,7 @@ export default function LandingPage() {
           <div className="relative">
             <div className="absolute left-[1.625rem] top-12 bottom-12 w-px bg-gradient-to-b from-accent-green/50 via-accent-green/20 to-transparent hidden sm:block" />
             <div className="space-y-4">
-              {HOW_IT_WORKS.map((step) => (
+              {HOW_IT_WORKS(exerciseCount).map((step) => (
                 <div key={step.step} className="flex gap-5 p-5 rounded-2xl border border-border bg-surface-elevated hover:border-border-strong transition-colors">
                   <div className="h-12 w-12 rounded-2xl bg-accent-green/10 border border-accent-green/20 flex items-center justify-center shrink-0 relative z-10">
                     <span className="text-sm font-black font-display text-accent-green">{step.step}</span>
