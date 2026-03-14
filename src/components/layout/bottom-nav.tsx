@@ -78,7 +78,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-150 ${keyboardOpen ? "translate-y-full" : "translate-y-0"}`}>
+      <nav className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-opacity duration-150 ${keyboardOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}>
         <div className="bg-background/90 backdrop-blur-2xl border-t border-border/60 shadow-[0_-4px_24px_rgba(0,0,0,0.12)]">
           <div className="flex items-center justify-around px-2 py-1 pb-[calc(0.25rem+env(safe-area-inset-bottom))]">
             {navItems.map((item) => {
